@@ -1,0 +1,19 @@
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  body { background: white; color: black; }
+}
+
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+
+/* Dynamic Access Class Helpers */
+body.role-guest .member-only,
+body.role-guest .admin-only {
+  display: none !important;
+}
+
+body.role-member .admin-only {
+  display: none !important;
+}
