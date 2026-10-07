@@ -6,10 +6,10 @@ function switchTab(tabName) {
     if (sec && btn) {
       if (tab === tabName) {
         sec.classList.remove('hidden');
-        btn.className = 'px-4 py-1.5 rounded-lg text-sm font-medium transition bg-indigo-600 text-white shadow';
+        btn.className = 'flex-1 sm:flex-none px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition bg-indigo-600 text-white shadow';
       } else {
         sec.classList.add('hidden');
-        btn.className = 'px-4 py-1.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200';
+        btn.className = 'flex-1 sm:flex-none px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition text-slate-400 hover:text-slate-200';
       }
     }
   });
@@ -57,7 +57,7 @@ function importJSON(event) {
   reader.readAsText(file);
 }
 
-// Daftarkan ke window scope
+// Global Exports
 window.switchTab = switchTab;
 window.exportJSON = exportJSON;
 window.importJSON = importJSON;
