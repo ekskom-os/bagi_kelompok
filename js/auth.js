@@ -1,25 +1,42 @@
 const ADMIN_PIN = "1234";
 let currentRole = localStorage.getItem('user_role') || 'guest';
 
-function openAuthModal() { document.getElementById('auth-modal').classList.remove('hidden'); }
-function closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); }
+function openAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) modal.classList.add('hidden');
+}
 
 function togglePinInput() {
-  const role = document.getElementById('role-select').value;
+  const roleSelect = document.getElementById('role-select');
   const pinContainer = document.getElementById('pin-container');
-  if (role === 'admin') pinContainer.classList.remove('hidden');
-  else pinContainer.classList.add('hidden');
+  if (roleSelect && pinContainer) {
+    if (roleSelect.value === 'admin') {
+      pinContainer.classList.remove('hidden');
+    } else {
+      pinContainer.classList.add('hidden');
+    }
+  }
 }
 
 function applyRoleSelection() {
-  const selectedRole = document.getElementById('role-select').value;
+  const roleSelect = document.getElementById('role-select');
+  if (!roleSelect) return;
+
+  const selectedRole = roleSelect.value;
   if (selectedRole === 'admin') {
-    const pin = document.getElementById('admin-pin-input').value;
+    const pinInput = document.getElementById('admin-pin-input');
+    const pin = pinInput ? pinInput.value : '';
     if (pin !== ADMIN_PIN) {
       alert('PIN Admin Salah!');
       return;
     }
   }
+
   currentRole = selectedRole;
   localStorage.setItem('user_role', currentRole);
   updateRoleUI();
@@ -34,27 +51,55 @@ function updateRoleUI() {
   const banner = document.getElementById('access-banner');
   const authBtn = document.getElementById('auth-btn');
 
-  if (currentRole === 'admin') {
-    badge.innerText = 'Role: Admin';
-    badge.className = 'px-2.5 py-1 rounded-md text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30';
-    banner.innerHTML = '<i class="fa-solid fa-user-shield text-rose-400 mr-2"></i> <b>Akses Admin Active:</b> Anda dapat menghapus data anggota dan mengelola sistem.';
-    authBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Keluar Admin';
-    authBtn.onclick = () => { currentRole = 'guest'; localStorage.setItem('user_role', 'guest'); updateRoleUI(); };
-  } else if (currentRole === 'member') {
-    badge.innerText = 'Role: Member';
-    badge.className = 'px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
-    banner.innerHTML = '<i class="fa-solid fa-user text-indigo-400 mr-2"></i> <b>Akses Member:</b> Anda dapat mendaftar proyek dan mengikuti tes logika CT.';
-    authBtn.innerHTML = '<i class="fa-solid fa-key"></i> Switch Role';
-    authBtn.onclick = openAuthModal;
-  } else {
-    badge.innerText = 'Role: Guest';
-    badge.className = 'px-2.5 py-1 rounded-md text-xs font-bold bg-slate-700 text-slate-300';
-    banner.innerHTML = '<i class="fa-solid fa-eye text-slate-400 mr-2"></i> <b>Akses Guest (Tamu):</b> Anda hanya dapat melihat rekap kuota proyek dan klasemen poin.';
-    authBtn.innerHTML = '<i class="fa-solid fa-key"></i> Login Admin';
-    authBtn.onclick = openAuthModal;
+  if (badge) {
+    if (currentRole === 'admin') {
+      badge.innerText = 'Role: Admin';
+      badge.className = 'px-2.5 py-1 rounded-md text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30';
+    } else if (currentRole === 'member') {
+      badge.innerText = 'Role: Member';
+      badge.className = 'px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
+    } else {
+      badge.innerText = 'Role: Guest';
+      badge.className = 'px-2.5 py-1 rounded-md text-xs font-bold bg-slate-700 text-slate-300';
+    }
   }
 
-  if (typeof renderMembersTable === 'function') renderMembersTable();
+  if (banner) {
+    if (currentRole === 'admin') {
+      banner.innerHTML = '<i class="fa-solid fa-user-shield text-rose-400 mr-2"></i> <b>Akses Admin Aktif:</b> Anda memiliki kontrol penuh atas data.';
+    } else if (currentRole === 'member') {
+      banner.innerHTML = '<i class="fa-solid fa-user text-indigo-400 mr-2"></i> <b>Akses Member:</b> Anda dapat mendaftar proyek dan mengikuti tes logika CT.';
+    } else {
+      banner.innerHTML = '<i class="fa-solid fa-eye text-slate-400 mr-2"></i> <b>Akses Guest (Tamu):</b> Anda hanya dapat melihat rekap proyek dan peringkat.';
+    }
+  }
+
+  if (authBtn) {
+    if (currentRole === 'admin') {
+      authBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Keluar Admin';
+      authBtn.onclick = logoutAdmin;
+    } else {
+      authBtn.innerHTML = '<i class="fa-solid fa-key"></i> Login Admin';
+      authBtn.onclick = openAuthModal;
+    }
+  }
+
+  if (typeof renderMembersTable === 'function') {
+    renderMembersTable();
+  }
 }
 
-window.addEventListener('DOMContentLoaded', updateRoleUI);
+function logoutAdmin() {
+  currentRole = 'guest';
+  localStorage.setItem('user_role', 'guest');
+  updateRoleUI();
+}
+
+// Hubungkan fungsi ke objek window agar bisa dipanggil oleh onclick di HTML
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+window.togglePinInput = togglePinInput;
+window.applyRoleSelection = applyRoleSelection;
+window.logoutAdmin = logoutAdmin;
+
+document.addEventListener('DOMContentLoaded', updateRoleUI);
