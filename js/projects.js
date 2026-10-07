@@ -2,15 +2,23 @@ let membersData = [];
 const projectsList = ["Web Development", "Game Dev", "UI/UX Design", "Cyber Security"];
 const MAX_QUOTA = 5;
 
-window.addEventListener('firebase-ready', () => {
-  if (!window.firebaseDb || !window.firebaseRef) return;
-  const dbRef = window.firebaseRef(window.firebaseDb, 'members');
-  window.firebaseOnValue(dbRef, (snapshot) => {
-    const data = snapshot.val();
-    membersData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-    renderProjectsGrid();
-    renderMembersTable();
-  });
+// Fungsi inisialisasi Firebase
+function initProjectsFirebase() {
+  if (window.firebaseDb && window.firebaseRef && window.firebaseOnValue) {
+    const dbRef = window.firebaseRef(window.firebaseDb, 'members');
+    window.firebaseOnValue(dbRef, (snapshot) => {
+      const data = snapshot.val();
+      membersData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+      renderProjectsGrid();
+      renderMembersTable();
+    });
+  }
+}
+
+// Dengarkan event firebase-ready atau jalankan langsung jika Firebase sudah siap
+window.addEventListener('firebase-ready', initProjectsFirebase);
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initProjectsFirebase, 500);
 });
 
 function renderProjectsGrid() {
@@ -63,21 +71,33 @@ function renderMembersTable() {
 
 function handleRegister(e) {
   if (e) e.preventDefault();
+
   const nameInput = document.getElementById('member-name');
   const projectSelect = document.getElementById('project-select');
-  if (!nameInput || !projectSelect) return;
+  
+  if (!nameInput || !projectSelect) {
+    alert('Elemen form tidak ditemukan!');
+    return;
+  }
   
   const name = nameInput.value.trim();
   const project = projectSelect.value;
   
   if (!name || !project) {
-    alert('Mohon isi nama dan pilih proyek terlebih dahulu!');
+    alert('Mohon isi nama lengkap dan pilih proyek terlebih dahulu!');
     return;
   }
 
   const currentCount = membersData.filter(m => m.project === project).length;
   if (currentCount >= MAX_QUOTA) {
-    alert('Kuota proyek ini sudah penuh!');
+    alert(`Kuota untuk proyek "${project}" sudah penuh! (Maksimal ${MAX_QUOTA} anggota)`);
+    return;
+  }
+
+  // Cek koneksi Firebase
+  if (!window.firebaseDb || !window.firebaseRef || !window.firebaseSet) {
+    alert('Koneksi database sedang disiapkan, silakan coba 2 detik lagi.');
+    initProjectsFirebase();
     return;
   }
 
@@ -87,18 +107,30 @@ function handleRegister(e) {
     project: project,
     date: new Date().toLocaleDateString('id-ID')
   }).then(() => {
-    document.getElementById('project-form').reset();
+    alert(`Berhasil mendaftarkan ${name} ke proyek ${project}!`);
+    const form = document.getElementById('project-form');
+    if (form) form.reset();
+  }).catch((err) => {
+    alert('Gagal menyimpan data ke database: ' + err.message);
   });
 }
 
 function deleteMember(id) {
-  if (confirm('Hapus anggota ini?')) {
-    const itemRef = window.firebaseRef(window.firebaseDb, 'members/' + id);
-    window.firebaseRemove(itemRef);
+  if (!confirm('Hapus anggota ini?')) return;
+  
+  if (!window.firebaseDb || !window.firebaseRef || !window.firebaseRemove) {
+    alert('Koneksi database belum siap.');
+    return;
   }
+
+  const itemRef = window.firebaseRef(window.firebaseDb, 'members/' + id);
+  window.firebaseRemove(itemRef).catch((err) => {
+    alert('Gagal menghapus: ' + err.message);
+  });
 }
 
-// Global Exports
+// Bind Fungsi ke Window secara Ekstisif
 window.handleRegister = handleRegister;
 window.deleteMember = deleteMember;
 window.renderMembersTable = renderMembersTable;
+window.renderProjectsGrid = renderProjectsGrid;
