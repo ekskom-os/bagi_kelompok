@@ -1,4 +1,3 @@
-// Bank Soal CT, Timer 20s, Scoring, & Integrasi Firebase Realtime
 const questions = [
   { q: "Urutan langkah logis untuk menyelesaikan masalah disebut?", options: ["Algoritma", "Variabel", "Looping", "Bug"], ans: 0 },
   { q: "Manakah yang merupakan tipe data angka tanpa desimal?", options: ["String", "Integer", "Boolean", "Float"], ans: 1 },
@@ -8,7 +7,8 @@ const questions = [
 let currentQ = 0, gameScore = 0, timer, timeLeft = 20;
 
 function startGame() {
-  const name = document.getElementById('player-name').value.trim();
+  const nameInput = document.getElementById('player-name');
+  const name = nameInput ? nameInput.value.trim() : '';
   if (!name) { alert('Masukkan nama terlebih dahulu!'); return; }
   
   currentQ = 0; gameScore = 0;
@@ -53,11 +53,21 @@ function resetTimer() {
 function finishGame() {
   clearInterval(timer);
   const name = document.getElementById('player-name').value.trim();
-  const leaderRef = window.firebaseRef(window.firebaseDb, 'leaderboard/' + Date.now());
   
-  window.firebaseSet(leaderRef, { name: name, score: gameScore }).then(() => {
+  if (window.firebaseRef && window.firebaseDb && window.firebaseSet) {
+    const leaderRef = window.firebaseRef(window.firebaseDb, 'leaderboard/' + Date.now());
+    window.firebaseSet(leaderRef, { name: name, score: gameScore }).then(() => {
+      alert(`Tes Selesai! Skor Akhir Anda: ${gameScore}`);
+      document.getElementById('quiz-area').classList.add('hidden');
+      document.getElementById('game-box').classList.remove('hidden');
+    });
+  } else {
     alert(`Tes Selesai! Skor Akhir Anda: ${gameScore}`);
     document.getElementById('quiz-area').classList.add('hidden');
     document.getElementById('game-box').classList.remove('hidden');
-  });
+  }
 }
+
+// Global Exports
+window.startGame = startGame;
+window.answerQuestion = answerQuestion;
