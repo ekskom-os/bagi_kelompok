@@ -22,14 +22,14 @@ function renderProjectsGrid() {
     const count = membersData.filter(m => m.project === proj).length;
     const remaining = MAX_QUOTA - count;
     container.innerHTML += `
-      <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl space-y-2">
+      <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-2xl space-y-2.5 shadow-lg">
         <h4 class="font-bold text-slate-200 text-sm">${proj}</h4>
         <div class="flex justify-between text-xs text-slate-400">
           <span>Terisi: ${count}/${MAX_QUOTA}</span>
-          <span class="${remaining > 0 ? 'text-emerald-400' : 'text-rose-400'}">${remaining > 0 ? 'Sisa ' + remaining : 'Penuh'}</span>
+          <span class="${remaining > 0 ? 'text-emerald-400 font-semibold' : 'text-rose-400 font-semibold'}">${remaining > 0 ? 'Sisa ' + remaining : 'Penuh'}</span>
         </div>
-        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
-          <div class="bg-indigo-500 h-2 rounded-full" style="width: ${(count/MAX_QUOTA)*100}%"></div>
+        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-700/50">
+          <div class="bg-indigo-500 h-2 rounded-full transition-all duration-300" style="width: ${(count/MAX_QUOTA)*100}%"></div>
         </div>
       </div>
     `;
@@ -48,13 +48,13 @@ function renderMembersTable() {
 
   membersData.forEach((m, idx) => {
     tbody.innerHTML += `
-      <tr class="hover:bg-slate-800/40">
-        <td class="px-4 py-2.5">${idx + 1}</td>
-        <td class="px-4 py-2.5 font-medium text-white">${m.name}</td>
-        <td class="px-4 py-2.5"><span class="bg-indigo-500/20 text-indigo-300 text-xs px-2 py-0.5 rounded border border-indigo-500/30">${m.project}</span></td>
-        <td class="px-4 py-2.5 text-xs text-slate-400">${m.date || '-'}</td>
-        <td class="px-4 py-2.5 admin-only text-center">
-          <button onclick="deleteMember('${m.id}')" class="text-rose-400 hover:text-rose-300 text-xs"><i class="fa-solid fa-trash"></i> Hapus</button>
+      <tr class="hover:bg-slate-800/50 transition">
+        <td class="px-4 py-3">${idx + 1}</td>
+        <td class="px-4 py-3 font-semibold text-white">${m.name}</td>
+        <td class="px-4 py-3"><span class="bg-indigo-500/20 text-indigo-300 text-xs px-2.5 py-1 rounded-lg border border-indigo-500/30">${m.project}</span></td>
+        <td class="px-4 py-3 text-xs text-slate-400">${m.date || '-'}</td>
+        <td class="px-4 py-3 admin-only text-center">
+          <button onclick="deleteMember('${m.id}')" class="text-rose-400 hover:text-rose-300 text-xs transition"><i class="fa-solid fa-trash"></i> Hapus</button>
         </td>
       </tr>
     `;
@@ -65,7 +65,6 @@ function handleRegister(e) {
   if (e) e.preventDefault();
   const nameInput = document.getElementById('member-name');
   const projectSelect = document.getElementById('project-select');
-  
   if (!nameInput || !projectSelect) return;
   
   const name = nameInput.value.trim();
@@ -89,8 +88,6 @@ function handleRegister(e) {
     date: new Date().toLocaleDateString('id-ID')
   }).then(() => {
     document.getElementById('project-form').reset();
-  }).catch((err) => {
-    alert('Gagal menyimpan data: ' + err.message);
   });
 }
 
