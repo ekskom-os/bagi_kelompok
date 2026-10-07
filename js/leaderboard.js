@@ -1,5 +1,5 @@
-// Listener Realtime Database Firebase & Rendering Podium Top 3
 window.addEventListener('firebase-ready', () => {
+  if (!window.firebaseDb || !window.firebaseRef) return;
   const dbRef = window.firebaseRef(window.firebaseDb, 'leaderboard');
   window.firebaseOnValue(dbRef, (snapshot) => {
     const data = snapshot.val();
@@ -20,11 +20,16 @@ function renderLeaderboard(data) {
   }
 
   data.forEach((item, idx) => {
+    let rankBadge = `#${idx + 1}`;
+    if (idx === 0) rankBadge = '🥇 #1';
+    else if (idx === 1) rankBadge = '🥈 #2';
+    else if (idx === 2) rankBadge = '🥉 #3';
+
     tbody.innerHTML += `
-      <tr class="hover:bg-slate-800/40">
-        <td class="px-4 py-2.5 font-bold text-amber-400">#${idx + 1}</td>
-        <td class="px-4 py-2.5 font-medium text-white">${item.name}</td>
-        <td class="px-4 py-2.5 font-bold text-indigo-400">${item.score} Pts</td>
+      <tr class="hover:bg-slate-800/50 transition">
+        <td class="px-4 py-3 font-bold text-amber-400">${rankBadge}</td>
+        <td class="px-4 py-3 font-semibold text-white">${item.name}</td>
+        <td class="px-4 py-3 font-bold text-indigo-400">${item.score} Pts</td>
       </tr>
     `;
   });
