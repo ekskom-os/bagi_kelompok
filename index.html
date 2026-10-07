@@ -3,20 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ekskul Komputer Cikpus</title>
-  
-  <!-- Tailwind CSS & FontAwesome -->
+  <title>Ekskul Komputer OS</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Kustom CSS -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased">
 
-  <!-- TOP HEADER -->
+  <!-- HEADER -->
   <header class="bg-slate-800/80 backdrop-blur-md border-b border-slate-700 sticky top-0 z-40 no-print">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
       <div class="flex items-center space-x-3">
         <div class="p-2 bg-indigo-600 rounded-lg shadow-lg">
           <i class="fa-solid fa-laptop-code text-xl text-white"></i>
@@ -29,45 +25,125 @@
 
       <!-- Navigation Tabs -->
       <nav class="flex bg-slate-900/60 p-1 rounded-xl border border-slate-700/60">
-        <button id="tab-btn-projects" onclick="switchTab('projects')" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white shadow">
+        <button id="tab-btn-projects" onclick="switchTab('projects')" class="px-4 py-1.5 rounded-lg text-sm font-medium transition bg-indigo-600 text-white shadow">
           <i class="fa-solid fa-diagram-project mr-1.5"></i>Proyek
         </button>
-        <button id="tab-btn-game" onclick="switchTab('game')" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200">
+        <button id="tab-btn-game" onclick="switchTab('game')" class="px-4 py-1.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200">
           <i class="fa-solid fa-gamepad mr-1.5"></i>Tes Logika CT
         </button>
-        <button id="tab-btn-leaderboard" onclick="switchTab('leaderboard')" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200">
+        <button id="tab-btn-leaderboard" onclick="switchTab('leaderboard')" class="px-4 py-1.5 rounded-lg text-sm font-medium transition text-slate-400 hover:text-slate-200">
           <i class="fa-solid fa-trophy mr-1.5"></i>Peringkat
         </button>
       </nav>
 
-      <!-- Role Status & Admin Auth -->
+      <!-- Role Status & Admin Controls -->
       <div class="flex items-center space-x-3">
         <span id="role-badge" class="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-700 text-slate-300">
           Role: Guest
         </span>
-
         <button id="auth-btn" onclick="openAuthModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs rounded-lg font-medium transition flex items-center gap-1.5 text-white">
           <i class="fa-solid fa-key"></i> Login Admin
         </button>
-
-        <!-- Dynamic Admin Action Controls -->
-        <div class="admin-only hidden items-center space-x-2">
-          <button onclick="exportJSON()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded-lg font-medium transition flex items-center gap-1.5">
-            <i class="fa-solid fa-download"></i> Export JSON
-          </button>
-          <label class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded-lg font-medium transition flex items-center gap-1.5 cursor-pointer">
-            <i class="fa-solid fa-upload"></i> Import JSON
-            <input type="file" id="json-input" class="hidden" accept=".json" onchange="importJSON(event)">
-          </label>
-        </div>
       </div>
     </div>
   </header>
 
   <!-- MAIN CONTAINER -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <!-- Status bar, Form, Cards, Table, Game, & Leaderboard UI -->
-    <!-- (Tampilan antarmuka utama) -->
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <!-- TAB 1: PROYEK -->
+    <section id="section-projects" class="space-y-6">
+      <!-- Banner Informasi Access Level -->
+      <div id="access-banner" class="p-4 rounded-xl border border-slate-700 bg-slate-800/50 text-sm text-slate-300">
+        <!-- Text diisi dinamis oleh auth.js -->
+      </div>
+
+      <!-- Form Pendaftaran (Hanya Tampil untuk Member & Admin) -->
+      <div class="member-only bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg">
+        <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-user-plus text-indigo-400"></i> Form Pendaftaran Anggota
+        </h3>
+        <form id="project-form" onsubmit="handleRegister(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <input type="text" id="member-name" placeholder="Nama Lengkap Siswa" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+          <select id="project-select" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+            <option value="">-- Pilih Proyek --</option>
+            <option value="Web Development">Web Development (Kuota: 5)</option>
+            <option value="Game Dev">Game Dev (Kuota: 5)</option>
+            <option value="UI/UX Design">UI/UX Design (Kuota: 5)</option>
+            <option value="Cyber Security">Cyber Security (Kuota: 5)</option>
+          </select>
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition">
+            Daftar Proyek
+          </button>
+        </form>
+      </div>
+
+      <!-- Kartu Ringkasan Proyek & Tabel Data -->
+      <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+      
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg">
+        <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-list text-indigo-400 mr-2"></i>Daftar Anggota Terdaftar</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-900 text-slate-400 text-xs uppercase">
+              <tr>
+                <th class="px-4 py-3">No</th>
+                <th class="px-4 py-3">Nama Siswa</th>
+                <th class="px-4 py-3">Pilihan Proyek</th>
+                <th class="px-4 py-3">Tanggal</th>
+                <th class="px-4 py-3 admin-only text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="members-table-body" class="divide-y divide-slate-700/50"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: GAME CT -->
+    <section id="section-game" class="hidden space-y-6">
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 text-center max-w-xl mx-auto space-y-4">
+        <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-brain text-amber-400 mr-2"></i>Tes Logika & Computational Thinking</h2>
+        <p class="text-xs text-slate-400">Jawab pertanyaan logika sebelum waktu habis untuk mengumpulkan skor!</p>
+        
+        <div id="game-box" class="space-y-4">
+          <div class="member-only space-y-3">
+            <input type="text" id="player-name" placeholder="Masukkan Nama Siswa..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+            <button onclick="startGame()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg text-sm transition">Mulai Tes Logika</button>
+          </div>
+          <p class="guest-only text-xs text-amber-400 bg-amber-400/10 p-3 rounded-lg border border-amber-400/20">
+            Mode Guest hanya dapat melihat peringkat. Login sebagai Member untuk memainkan game ini.
+          </p>
+        </div>
+
+        <div id="quiz-area" class="hidden space-y-4 text-left border-t border-slate-700 pt-4">
+          <div class="flex justify-between items-center text-xs font-semibold text-slate-400">
+            <span>Waktu: <span id="timer-text" class="text-amber-400">20</span>s</span>
+            <span>Skor Saat Ini: <span id="current-score" class="text-indigo-400">0</span></span>
+          </div>
+          <p id="question-text" class="font-medium text-slate-200 text-sm bg-slate-900 p-3 rounded-lg"></p>
+          <div id="options-container" class="grid grid-cols-1 gap-2"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: LEADERBOARD -->
+    <section id="section-leaderboard" class="hidden space-y-6">
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg">
+        <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i>Klasemen Poin Tes Logika</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-900 text-slate-400 text-xs uppercase">
+              <tr>
+                <th class="px-4 py-3">Peringkat</th>
+                <th class="px-4 py-3">Nama Siswa</th>
+                <th class="px-4 py-3">Total Skor</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-table-body" class="divide-y divide-slate-700/50"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- MODAL AUTHENTICATION -->
@@ -79,7 +155,6 @@
         </h3>
         <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
       <div class="space-y-3">
         <label class="block text-xs text-slate-300">Pilih Mode Akses:</label>
         <select id="role-select" onchange="togglePinInput()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
@@ -87,20 +162,16 @@
           <option value="member">Member (Siswa - Daftar & Main Game)</option>
           <option value="admin">Administrator (Akses Penuh)</option>
         </select>
-
         <div id="pin-container" class="hidden space-y-1">
           <label class="block text-xs text-slate-300">Masukkan PIN Admin:</label>
-          <input type="password" id="admin-pin-input" placeholder="Masukkan PIN (default: 1234)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+          <input type="password" id="admin-pin-input" placeholder="PIN: 1234" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
         </div>
       </div>
-
-      <button onclick="applyRoleSelection()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-lg text-sm font-medium transition">
-        Konfirmasi Akses
-      </button>
+      <button onclick="applyRoleSelection()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-lg text-sm font-medium transition">Konfirmasi Akses</button>
     </div>
   </div>
 
-  <!-- FIREBASE & SCRIPT MODULES -->
+  <!-- FIREBASE & MODULE SCRIPTS -->
   <script type="module" src="js/firebase-config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/projects.js"></script>
