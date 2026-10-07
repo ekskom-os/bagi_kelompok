@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Pembagian Proyek Ekskul Komputer</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0284c7',
+              700: '#0369a1',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; color: black !important; }
+      .print-card { border: 1px solid #ccc !important; box-shadow: none !important; background: white !important; color: black !important; }
+    }
+  </style>
+</head>
+<body class="font-sans antialiased min-h-full flex flex-col bg-slate-950 text-slate-100">
+
+  <!-- Header / Navbar -->
+  <header class="no-print sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <i class="fa-solid fa-laptop-code text-white text-lg"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg text-white leading-tight">Projek Ekskul Komputer</h1>
+          <p class="text-xs text-slate-400">Sistem Pembagian Kelompok (Kapasitas: 70 Anggota)</p>
+        </div>
+      </div>
+      
+      <!-- Quick Status Badges -->
+      <div class="flex items-center space-x-2">
+        <div class="bg-slate-800/80 border border-slate-700/60 rounded-lg px-3 py-1.5 flex items-center space-x-2">
+          <i class="fa-solid fa-users text-cyan-400 text-sm"></i>
+          <span class="text-xs text-slate-300">Terdaftar:</span>
+          <span id="registeredCountBadge" class="font-bold text-sm text-cyan-400">0</span>
+          <span class="text-xs text-slate-500">/ 70</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- Toast Notification Overlay -->
+    <div id="toastContainer" class="fixed top-20 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+    <!-- Summary Stats Bar -->
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-4 no-print">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group">
+        <div class="absolute -right-2 -bottom-2 w-16 h-16 bg-cyan-500/10 rounded-full blur-xl group-hover:bg-cyan-500/20 transition-all"></div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Anggota</p>
+        <div class="mt-2 flex items-baseline justify-between">
+          <span id="statTotal" class="text-3xl font-extrabold text-white">0</span>
+          <span class="text-xs text-slate-500">Maks. 70</span>
+        </div>
+        <div class="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+          <div id="progressTotal" class="bg-cyan-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Slot Tersisa</p>
+        <div class="mt-2 flex items-baseline justify-between">
+          <span id="statRemaining" class="text-3xl font-extrabold text-emerald-400">70</span>
+          <span class="text-xs text-emerald-500/80 font-medium">Slot Kosong</span>
+        </div>
+        <p class="mt-3 text-xs text-slate-500">Tersedia di 5 Proyek Utama</p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Proyek Penuh</p>
+        <div class="mt-2 flex items-baseline justify-between">
+          <span id="statFullProjects" class="text-3xl font-extrabold text-amber-400">0</span>
+          <span class="text-xs text-slate-500">Dari 5 Proyek</span>
+        </div>
+        <p class="mt-3 text-xs text-slate-500">Sub-proyek terkunci jika kuota penuh</p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Manajemen JSON Data</p>
+        <div class="mt-3 flex items-center space-x-2">
+          <button onclick="exportJSON()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-xs text-cyan-300 font-semibold py-2 px-3 rounded-lg border border-slate-700 transition flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-download"></i>
+            <span>Export</span>
+          </button>
+          <button onclick="triggerImportJSON()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-xs text-indigo-300 font-semibold py-2 px-3 rounded-lg border border-slate-700 transition flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-upload"></i>
+            <span>Import</span>
+          </button>
+          <input type="file" id="jsonFileInput" class="hidden" accept=".json" onchange="importJSON(event)">
+        </div>
+        <p class="mt-2 text-[10px] text-slate-500 text-center">Simpan & pulihkan data kapan saja</p>
+      </div>
+    </section>
+
+    <!-- Registration Form & Project Status Grid -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 no-print">
+      
+      <!-- Registration Form (4 cols) -->
+      <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="flex items-center space-x-3 border-b border-slate-800 pb-4">
+          <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+            <i class="fa-solid fa-user-plus text-sm"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white">Form Pendaftaran Anggota</h2>
+            <p class="text-xs text-slate-400">Pilih proyek & sub-proyek sesuai minat</p>
+          </div>
+        </div>
+
+        <form id="registrationForm" onsubmit="handleRegister(event)" class="space-y-4">
+          <div>
+            <label for="memberName" class="block text-xs font-semibold text-slate-300 mb-1.5">Nama Lengkap Siswa</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 text-xs">
+                <i class="fa-solid fa-user"></i>
+              </span>
+              <input type="text" id="memberName" required placeholder="Contoh: Muhammad Rizky" 
+                class="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition">
+            </div>
+          </div>
+
+          <div>
+            <label for="memberClass" class="block text-xs font-semibold text-slate-300 mb-1.5">Kelas / Jurusan</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 text-xs">
+                <i class="fa-solid fa-graduation-cap"></i>
+              </span>
+              <input type="text" id="memberClass" required placeholder="Contoh: X RPL 1, XI TKJ 2, X IPA 3" 
+                class="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition">
+            </div>
+          </div>
+
+          <div>
+            <label for="mainProjectSelect" class="block text-xs font-semibold text-slate-300 mb-1.5">Pilihan Proyek Utama</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 text-xs">
+                <i class="fa-solid fa-diagram-project"></i>
+              </span>
+              <select id="mainProjectSelect" required onchange="onMainProjectChange()"
+                class="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition appearance-none">
+                <option value="" disabled selected>-- Pilih Proyek Utama --</option>
+              </select>
+              <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500 text-xs">
+                <i class="fa-solid fa-chevron-down"></i>
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label for="subProjectSelect" class="block text-xs font-semibold text-slate-300 mb-1.5">Sub-Proyek / Peran Spesifik</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 text-xs">
+                <i class="fa-solid fa-list-check"></i>
+              </span>
+              <select id="subProjectSelect" required disabled
+                class="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition appearance-none disabled:opacity-50 disabled:cursor-not-allowed">
+                <option value="" disabled selected>-- Pilih Proyek Utama Dahulu --</option>
+              </select>
+              <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500 text-xs">
+                <i class="fa-solid fa-chevron-down"></i>
+              </span>
+            </div>
+            <p id="subQuotaHint" class="mt-1 text-[11px] text-slate-400">Pilih proyek utama untuk melihat opsi sub-proyek.</p>
+          </div>
+
+          <button type="submit" id="submitBtn" class="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-cyan-500/20 active:scale-[0.98] transition duration-150 flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Daftar Sekarang</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Project Overview Cards (7 cols) -->
+      <div class="lg:col-span-7 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-chart-pie text-cyan-400"></i>
+            <span>Status Kuota Proyek (5 Proyek Utama)</span>
+          </h2>
+          <span class="text-xs text-slate-400">Maks. 14 Anggota / Proyek Utama</span>
+        </div>
+
+        <div id="projectsQuotaContainer" class="space-y-3 max-h-[480px] overflow-y-auto pr-1">
+          <!-- Dynamically populated project cards -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Rekap Anggota & Search Section -->
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+      
+      <!-- Header Controls -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5 no-print">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-users-rectangle text-cyan-400"></i>
+            <span>Rekapitulasi Anggota Kelompok</span>
+          </h2>
+          <p class="text-xs text-slate-400">Daftar lengkap pembagian tim dan sub-proyek ekskul</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Search Input -->
+          <div class="relative flex-1 sm:w-64">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 text-xs">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </span>
+            <input type="text" id="searchInput" oninput="renderMembersTable()" placeholder="Cari nama / kelas..." 
+              class="w-full pl-9 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
+          </div>
+
+          <!-- Project Filter -->
+          <select id="projectFilter" onchange="renderMembersTable()" class="bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
+            <option value="ALL">Semua Proyek Utama</option>
+            <!-- Populated via JS -->
+          </select>
+
+          <!-- Print Button -->
+          <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white py-1.5 px-3 rounded-lg border border-slate-700 text-xs font-semibold transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-print"></i>
+            <span>Cetak / PDF</span>
+          </button>
+
+          <!-- Reset Button -->
+          <button onclick="promptResetData()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 py-1.5 px-3 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-trash-can"></i>
+            <span>Reset Data</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Printable Header Title -->
+      <div class="hidden print:block text-center border-b pb-4 mb-4">
+        <h1 class="text-2xl font-bold text-black">Daftar Pembagian Proyek Ekskul Komputer</h1>
+        <p class="text-sm text-gray-600">Total Anggota: <span id="printTotalCount">0</span> Siswa</p>
+      </div>
+
+      <!-- Members Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="bg-slate-950/80 text-xs uppercase text-slate-400 border-b border-slate-800 font-semibold">
+            <tr>
+              <th class="py-3 px-4 w-12 text-center">No</th>
+              <th class="py-3 px-4">Nama Siswa</th>
+              <th class="py-3 px-4">Kelas</th>
+              <th class="py-3 px-4">Proyek Utama</th>
+              <th class="py-3 px-4">Sub-Proyek / Peran</th>
+              <th class="py-3 px-4 text-xs">Waktu Daftar</th>
+              <th class="py-3 px-4 text-center no-print w-20">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="membersTableBody" class="divide-y divide-slate-800/60 font-medium">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+        
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden py-12 text-center text-slate-500 space-y-2">
+          <i class="fa-solid fa-folder-open text-4xl mb-2 text-slate-600"></i>
+          <p class="text-sm">Belum ada anggota yang mendaftar atau data tidak ditemukan.</p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="no-print mt-auto border-t border-slate-800 bg-slate-900 py-4 text-center text-xs text-slate-500">
+    <p>&copy; 2026 Ekstrakurikuler Komputer. All rights reserved.</p>
+  </footer>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center space-x-3 text-rose-400">
+        <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+          <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+        </div>
+        <h3 id="modalTitle" class="text-lg font-bold text-white">Konfirmasi Action</h3>
+      </div>
+      <p id="modalMessage" class="text-sm text-slate-300">Apakah Anda yakin ingin melakukan tindakan ini?</p>
+      <div class="flex justify-end space-x-3 pt-2">
+        <button onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">Batal</button>
+        <button id="modalConfirmBtn" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-rose-600/20 transition">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*
+      DATA STRUCTURE CONFIGURATION
+      Total Overall Capacity: 70
+      Main Projects: 5
+      Each Main Project Capacity: 14
+      Sub-Projects total sum up to 14 per main project.
+    */
+    const TOTAL_MAX_CAPACITY = 70;
+
+    const PROJECTS_CONFIG = [
+      {
+        id: "p1",
+        title: "1. Web Development",
+        icon: "fa-globe",
+        color: "text-blue-400",
+        bg: "bg-blue-500/10",
+        border: "border-blue-500/30",
+        maxQuota: 14,
+        subProjects: [
+          { id: "p1_s1", title: "Website Profil & Portal Ekskul", maxQuota: 6 },
+          { id: "p1_s2", title: "Sistem Inventaris Lab Komputer", maxQuota: 5 },
+          { id: "p1_s3", title: "UI/UX & Asset Designer Web", maxQuota: 3 }
+        ]
+      },
+      {
+        id: "p2",
+        title: "2. Game Development",
+        icon: "fa-gamepad",
+        color: "text-purple-400",
+        bg: "bg-purple-500/10",
+        border: "border-purple-500/30",
+        maxQuota: 14,
+        subProjects: [
+          { id: "p2_s1", title: "Game Arcade 2D (Endless Runner)", maxQuota: 5 },
+          { id: "p2_s2", title: "Game Quiz Edukasi Komputer", maxQuota: 5 },
+          { id: "p2_s3", title: "Game Design, Story & Sound Artist", maxQuota: 4 }
+        ]
+      },
+      {
+        id: "p3",
+        title: "3. Desain Grafis & Multimedia",
+        icon: "fa-palette",
+        color: "text-pink-400",
+        bg: "bg-pink-500/10",
+        border: "border-pink-500/30",
+        maxQuota: 14,
+        subProjects: [
+          { id: "p3_s1", title: "Social Media & Mascot Branding", maxQuota: 5 },
+          { id: "p3_s2", title: "Video Teaser & Dokumenter Ekskul", maxQuota: 5 },
+          { id: "p3_s3", title: "Layout Majalah & E-Catalog Sekolah", maxQuota: 4 }
+        ]
+      },
+      {
+        id: "p4",
+        title: "4. Jaringan & IoT (Internet of Things)",
+        icon: "fa-microchip",
+        color: "text-emerald-400",
+        bg: "bg-emerald-500/10",
+        border: "border-emerald-500/30",
+        maxQuota: 14,
+        subProjects: [
+          { id: "p4_s1", title: "Sistem Tempat Sampah Otomatis ESP32", maxQuota: 5 },
+          { id: "p4_s2", title: "Pemantau Suhu Lab Komputer", maxQuota: 5 },
+          { id: "p4_s3", title: "Simulasi Topologi Packet Tracer", maxQuota: 4 }
+        ]
+      },
+      {
+        id: "p5",
+        title: "5. Data Science & Automation",
+        icon: "fa-robot",
+        color: "text-amber-400",
+        bg: "bg-amber-500/10",
+        border: "border-amber-500/30",
+        maxQuota: 14,
+        subProjects: [
+          { id: "p5_s1", title: "Bot Telegram Informasi Sekolah", maxQuota: 5 },
+          { id: "p5_s2", title: "Dashboard Analytics Data Siswa", maxQuota: 5 },
+          { id: "p5_s3", title: "Automasi Spreadsheet & Rekap Nilai", maxQuota: 4 }
+        ]
+      }
+    ];
+
+    // State
+    let members = [];
+
+    // Initialize App
+    window.addEventListener('DOMContentLoaded', () => {
+      loadMembersFromStorage();
+      populateMainProjectSelects();
+      renderQuotaCards();
+      renderMembersTable();
+      updateStatsBar();
+    });
+
+    // Save & Load Local Storage
+    function saveMembersToStorage() {
+      localStorage.setItem('ekskul_members_data', JSON.stringify(members));
+    }
+
+    function loadMembersFromStorage() {
+      const stored = localStorage.getItem('ekskul_members_data');
+      if (stored) {
+        try {
+          members = JSON.parse(stored);
+        } catch (e) {
+          console.error('Failed to parse local JSON:', e);
+          members = [];
+        }
+      }
+    }
+
+    // Helper: Toast Notifications
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      const colors = {
+        success: 'bg-emerald-950 border-emerald-500 text-emerald-200',
+        error: 'bg-rose-950 border-rose-500 text-rose-200',
+        info: 'bg-cyan-950 border-cyan-500 text-cyan-200'
+      };
+
+      const icons = {
+        success: 'fa-circle-check text-emerald-400',
+        error: 'fa-circle-xmark text-rose-400',
+        info: 'fa-circle-info text-cyan-400'
+      };
+
+      toast.className = `pointer-events-auto flex items-center space-x-3 border px-4 py-3 rounded-xl shadow-2xl text-xs font-medium backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0 ${colors[type] || colors.info}`;
+      toast.innerHTML = `
+        <i class="fa-solid ${icons[type]} text-base"></i>
+        <span>${message}</span>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Populate Select Options
+    function populateMainProjectSelects() {
+      const select = document.getElementById('mainProjectSelect');
+      const filterSelect = document.getElementById('projectFilter');
+
+      // Clear existing options (except first default)
+      select.innerHTML = '<option value="" disabled selected>-- Pilih Proyek Utama --</option>';
+      filterSelect.innerHTML = '<option value="ALL">Semua Proyek Utama</option>';
+
+      PROJECTS_CONFIG.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p.id;
+        option.textContent = `${p.title} (Max: ${p.maxQuota})`;
+        select.appendChild(option);
+
+        const filterOpt = document.createElement('option');
+        filterOpt.value = p.id;
+        filterOpt.textContent = p.title;
+        filterSelect.appendChild(filterOpt);
+      });
+    }
+
+    // Handle Main Project Select Change -> Cascade to Sub Projects
+    function onMainProjectChange() {
+      const mainId = document.getElementById('mainProjectSelect').value;
+      const subSelect = document.getElementById('subProjectSelect');
+      const hint = document.getElementById('subQuotaHint');
+
+      subSelect.innerHTML = '<option value="" disabled selected>-- Pilih Sub-Proyek / Peran --</option>';
+      subSelect.disabled = false;
+
+      const mainProj = PROJECTS_CONFIG.find(p => p.id === mainId);
+      if (!mainProj) return;
+
+      mainProj.subProjects.forEach(sub => {
+        const count = getSubProjectMemberCount(mainId, sub.id);
+        const remaining = sub.maxQuota - count;
+        const isFull = remaining <= 0;
+
+        const option = document.createElement('option');
+        option.value = sub.id;
+        option.disabled = isFull;
+        option.textContent = `${sub.title} - [${isFull ? 'PENUH' : `Sisa ${remaining}`}]`;
+        subSelect.appendChild(option);
+      });
+
+      hint.textContent = `Pilih salah satu dari ${mainProj.subProjects.length} opsi sub-proyek yang tersedia.`;
+    }
+
+    // Calculation Helpers
+    function getMainProjectMemberCount(mainProjectId) {
+      return members.filter(m => m.mainProjectId === mainProjectId).length;
+    }
+
+    function getSubProjectMemberCount(mainProjectId, subProjectId) {
+      return members.filter(m => m.mainProjectId === mainProjectId && m.subProjectId === subProjectId).length;
+    }
+
+    // Register New Member
+    function handleRegister(event) {
+      event.preventDefault();
+
+      if (members.length >= TOTAL_MAX_CAPACITY) {
+        showToast(`Kuota total ekskul (${TOTAL_MAX_CAPACITY} anggota) telah terpenuhi!`, 'error');
+        return;
+      }
+
+      const nameInput = document.getElementById('memberName');
+      const classInput = document.getElementById('memberClass');
+      const mainId = document.getElementById('mainProjectSelect').value;
+      const subId = document.getElementById('subProjectSelect').value;
+
+      const name = nameInput.value.trim();
+      const className = classInput.value.trim();
+
+      // Duplicate Check
+      const existing = members.find(m => m.name.toLowerCase() === name.toLowerCase());
+      if (existing) {
+        showToast(`Siswa dengan nama "${name}" sudah terdaftar di proyek lain!`, 'error');
+        return;
+      }
+
+      // Quota check
+      const mainProj = PROJECTS_CONFIG.find(p => p.id === mainId);
+      const subProj = mainProj?.subProjects.find(s => s.id === subId);
+
+      if (!mainProj || !subProj) {
+        showToast("Pilihan proyek tidak valid.", "error");
+        return;
+      }
+
+      const currentSubCount = getSubProjectMemberCount(mainId, subId);
+      if (currentSubCount >= subProj.maxQuota) {
+        showToast(`Maaf, kuota untuk "${subProj.title}" sudah penuh!`, 'error');
+        return;
+      }
+
+      // Add Member
+      const newMember = {
+        id: "MBR_" + Date.now(),
+        name: name,
+        class: className,
+        mainProjectId: mainId,
+        subProjectId: subId,
+        registeredAt: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
+      };
+
+      members.push(newMember);
+      saveMembersToStorage();
+
+      // UI Updates
+      showToast(`Berhasil mendaftarkan ${name} ke sub-proyek!`, 'success');
+      
+      // Reset form
+      document.getElementById('registrationForm').reset();
+      document.getElementById('subProjectSelect').disabled = true;
+      document.getElementById('subProjectSelect').innerHTML = '<option value="" disabled selected>-- Pilih Proyek Utama Dahulu --</option>';
+
+      renderQuotaCards();
+      renderMembersTable();
+      updateStatsBar();
+    }
+
+    // Render Quota Progress Cards
+    function renderQuotaCards() {
+      const container = document.getElementById('projectsQuotaContainer');
+      container.innerHTML = '';
+
+      PROJECTS_CONFIG.forEach(p => {
+        const currentMainCount = getMainProjectMemberCount(p.id);
+        const mainPercentage = Math.round((currentMainCount / p.maxQuota) * 100);
+        const isMainFull = currentMainCount >= p.maxQuota;
+
+        const card = document.createElement('div');
+        card.className = `bg-slate-950 border border-slate-800/80 rounded-xl p-4 space-y-3 transition hover:border-slate-700`;
+
+        let subListHTML = p.subProjects.map(sub => {
+          const subCount = getSubProjectMemberCount(p.id, sub.id);
+          const subPct = Math.round((subCount / sub.maxQuota) * 100);
+          const isSubFull = subCount >= sub.maxQuota;
+
+          return `
+            <div class="space-y-1">
+              <div class="flex justify-between text-[11px]">
+                <span class="text-slate-300 font-medium">${sub.title}</span>
+                <span class="${isSubFull ? 'text-rose-400 font-bold' : 'text-slate-400'}">${subCount}/${sub.maxQuota}</span>
+              </div>
+              <div class="w-full bg-slate-900 rounded-full h-1 overflow-hidden">
+                <div class="${isSubFull ? 'bg-rose-500' : 'bg-cyan-500'} h-1 rounded-full transition-all duration-300" style="width: ${subPct}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800/60 pb-2.5">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg ${p.bg} ${p.border} border flex items-center justify-center ${p.color}">
+                <i class="fa-solid ${p.icon} text-xs"></i>
+              </div>
+              <div>
+                <h3 class="text-xs font-bold text-white">${p.title}</h3>
+                <span class="text-[10px] text-slate-400">Terisi ${currentMainCount} / ${p.maxQuota} Anggota</span>
+              </div>
+            </div>
+            <div>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${isMainFull ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}">
+                ${isMainFull ? 'PENUH' : `Sisa ${p.maxQuota - currentMainCount}`}
+              </span>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+            ${subListHTML}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // Render Members Table
+    function renderMembersTable() {
+      const tbody = document.getElementById('membersTableBody');
+      const emptyState = document.getElementById('emptyState');
+      const searchValue = document.getElementById('searchInput').value.toLowerCase();
+      const filterValue = document.getElementById('projectFilter').value;
+
+      tbody.innerHTML = '';
+
+      let filtered = members.filter(m => {
+        const matchesSearch = m.name.toLowerCase().includes(searchValue) || m.class.toLowerCase().includes(searchValue);
+        const matchesFilter = filterValue === 'ALL' || m.mainProjectId === filterValue;
+        return matchesSearch && matchesFilter;
+      });
+
+      document.getElementById('printTotalCount').textContent = filtered.length;
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      } else {
+        emptyState.classList.add('hidden');
+      }
+
+      filtered.forEach((m, index) => {
+        const mainProj = PROJECTS_CONFIG.find(p => p.id === m.mainProjectId);
+        const subProj = mainProj?.subProjects.find(s => s.id === m.subProjectId);
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/40 transition duration-150';
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-center text-xs font-mono text-slate-500">${index + 1}</td>
+          <td class="py-3 px-4 font-semibold text-white">${escapeHTML(m.name)}</td>
+          <td class="py-3 px-4 text-xs text-slate-300">
+            <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-[11px]">${escapeHTML(m.class)}</span>
+          </td>
+          <td class="py-3 px-4 text-xs font-medium ${mainProj ? mainProj.color : 'text-slate-300'}">
+            <i class="fa-solid ${mainProj ? mainProj.icon : 'fa-folder'} mr-1.5 opacity-80"></i>
+            ${mainProj ? mainProj.title : 'N/A'}
+          </td>
+          <td class="py-3 px-4 text-xs text-slate-300">
+            <span class="bg-slate-950 border border-slate-800 px-2 py-1 rounded-md inline-block text-[11px]">
+              ${subProj ? subProj.title : 'N/A'}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-[11px] text-slate-500 font-mono">${m.registeredAt || '-'}</td>
+          <td class="py-3 px-4 text-center no-print">
+            <button onclick="promptDeleteMember('${m.id}', '${escapeHTML(m.name)}')" class="text-slate-500 hover:text-rose-400 p-1 transition" title="Hapus Anggota">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Update Top Summary Stats Bar
+    function updateStatsBar() {
+      const total = members.length;
+      const remaining = TOTAL_MAX_CAPACITY - total;
+      
+      let fullProjects = 0;
+      PROJECTS_CONFIG.forEach(p => {
+        if (getMainProjectMemberCount(p.id) >= p.maxQuota) {
+          fullProjects++;
+        }
+      });
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('registeredCountBadge').textContent = total;
+      document.getElementById('statRemaining').textContent = remaining;
+      document.getElementById('statFullProjects').textContent = fullProjects;
+
+      const pct = Math.round((total / TOTAL_MAX_CAPACITY) * 100);
+      document.getElementById('progressTotal').style.width = `${pct}%`;
+    }
+
+    // Helper: HTML Escape
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, 
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+      );
+    }
+
+    // Delete Member Modal
+    function promptDeleteMember(id, name) {
+      openModal(
+        "Hapus Anggota",
+        `Apakah Anda yakin ingin menghapus "${name}" dari kelompok? Slot kuota akan kembali terbuka.`,
+        () => {
+          members = members.filter(m => m.id !== id);
+          saveMembersToStorage();
+          renderQuotaCards();
+          renderMembersTable();
+          updateStatsBar();
+          showToast(`Data anggota "${name}" berhasil dihapus.`, 'info');
+          closeModal();
+        }
+      );
+    }
+
+    // Reset Data Modal
+    function promptResetData() {
+      if (members.length === 0) {
+        showToast("Tidak ada data anggota untuk direset.", "info");
+        return;
+      }
+
+      openModal(
+        "Reset Semua Data",
+        "PERINGATAN: Semua rekap data anggota dan pilihan proyek akan dihapus secara permanen!",
+        () => {
+          members = [];
+          saveMembersToStorage();
+          renderQuotaCards();
+          renderMembersTable();
+          updateStatsBar();
+          showToast("Seluruh data anggota berhasil dibersihkan.", "info");
+          closeModal();
+        }
+      );
+    }
+
+    // Export JSON File
+    function exportJSON() {
+      if (members.length === 0) {
+        showToast("Belum ada data anggota untuk diexport.", "info");
+        return;
+      }
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(members, null, 2));
+      const downloadAnchor = document.createElement('a');
+      const dateStr = new Date().toISOString().slice(0,10);
+      
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `ekskul_komputer_kelompok_${dateStr}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+
+      showToast("File JSON rekap kelompok berhasil diunduh!", "success");
+    }
+
+    // Import JSON File
+    function triggerImportJSON() {
+      document.getElementById('jsonFileInput').click();
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (Array.isArray(importedData)) {
+            members = importedData;
+            saveMembersToStorage();
+            renderQuotaCards();
+            renderMembersTable();
+            updateStatsBar();
+            showToast(`Berhasil mengimpor ${members.length} data anggota dari file JSON!`, 'success');
+          } else {
+            showToast("Format JSON tidak valid. Harus berupa array data.", "error");
+          }
+        } catch (err) {
+          showToast("Gagal membaca file JSON. Pastikan format file benar.", "error");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = ''; // Reset file input
+    }
+
+    // Generic Modal Control
+    let modalCallback = null;
+
+    function openModal(title, message, onConfirm) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalMessage').textContent = message;
+      modalCallback = onConfirm;
+
+      const modal = document.getElementById('confirmModal');
+      modal.classList.remove('hidden');
+      setTimeout(() => modal.classList.remove('opacity-0'), 10);
+
+      document.getElementById('modalConfirmBtn').onclick = () => {
+        if (modalCallback) modalCallback();
+      };
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('confirmModal');
+      modal.classList.add('opacity-0');
+      setTimeout(() => modal.classList.add('hidden'), 200);
+      modalCallback = null;
+    }
+  </script>
+</body>
+</html>
