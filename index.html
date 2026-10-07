@@ -500,6 +500,7 @@
                 <th class="py-3 px-4 text-center">Skor Tertinggi</th>
                 <th class="py-3 px-4 text-center">Akurasi</th>
                 <th class="py-3 px-4 text-right">Tanggal Main</th>
+                <th class="py-3 px-4 text-center w-16">Aksi</th>
               </tr>
             </thead>
             <tbody id="leaderboardTableBody" class="divide-y divide-slate-800/60 font-medium">
@@ -1069,12 +1070,19 @@
           <td class="py-3 px-4 text-center font-mono font-bold text-amber-400">${item.score} PTS</td>
           <td class="py-3 px-4 text-center font-mono text-xs text-emerald-400">${item.accuracy}%</td>
           <td class="py-3 px-4 text-right text-xs text-slate-500 font-mono">${item.date}</td>
+          <td class="py-3 px-4 text-center">
+            <button onclick="promptDeleteLeaderboardEntry('${item.id}', '${escapeHTML(item.name)}')" class="text-slate-500 hover:text-rose-400 p-1 transition" title="Hapus Skor">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
 
       if (leaderboard.length > 0) {
         document.getElementById('topLeaderBadge').textContent = `Top 1: ${leaderboard[0].score} pts`;
+      } else {
+        document.getElementById('topLeaderBadge').textContent = `Top 1: 0 pts`;
       }
     }
 
@@ -1420,13 +1428,23 @@
         }
       });
 
-      document.getElementById('statTotal').textContent = total;
-      document.getElementById('registeredCountBadge').textContent = total;
-      document.getElementById('statRemaining').textContent = remaining;
-      document.getElementById('statFullProjects').textContent = fullProjects;
+      const statTotalEl = document.getElementById('statTotal');
+      if (statTotalEl) statTotalEl.textContent = total;
 
-      const pct = Math.round((total / TOTAL_MAX_CAPACITY) * 100);
-      document.getElementById('progressTotal').style.width = `${pct}%`;
+      const regBadge = document.getElementById('registeredCountBadge');
+      if (regBadge) regBadge.textContent = total;
+
+      const statRemEl = document.getElementById('statRemaining');
+      if (statRemEl) statRemEl.textContent = remaining;
+
+      const statFullEl = document.getElementById('statFullProjects');
+      if (statFullEl) statFullEl.textContent = fullProjects;
+
+      const progressEl = document.getElementById('progressTotal');
+      if (progressEl) {
+        const pct = Math.round((total / TOTAL_MAX_CAPACITY) * 100);
+        progressEl.style.width = `${pct}%`;
+      }
     }
 
     // Helper: HTML Escape
@@ -1446,14 +1464,60 @@
     function promptDeleteMember(id, name) {
       openModal(
         "Hapus Anggota",
-        `Apakah Anda yakin ingin menghapus "${name}" dari kelompok? Slot kuota akan kembali terbuka.`,
+        `Apakah Anda yakin ingin menghapus "${name}" dari kelompok? Skor di leaderboard juga akan dibersihkan.`,
         () => {
           members = members.filter(m => m.id !== id);
+          leaderboard = leaderboard.filter(l => l.name.toLowerCase() !== name.toLowerCase());
           saveMembersToStorage();
+          saveLeaderboardToStorage();
           renderQuotaCards();
           renderMembersTable();
+          renderLeaderboardTable();
+          populateGamePlayerDropdown();
           updateStatsBar();
-          showToast(`Data anggota "${name}" berhasil dihapus.`, 'info');
+          showToast(`Data anggota & skor "${name}" berhasil dihapus.`, 'info');
+          closeModal();
+        }
+      );
+    }
+
+    // Delete Leaderboard Entry Modal
+    function promptDeleteLeaderboardEntry(id, name) {
+      openModal(
+        "Hapus Skor Leaderboard",
+        `Apakah Anda yakin ingin menghapus skor leaderboard untuk "${name}"?`,
+        () => {
+          leaderboard = leaderboard.filter(l => l.id !== id);
+          saveLeaderboardToStorage();
+          renderLeaderboardTable();
+          populateGamePlayerDropdown();
+          showToast(`Skor leaderboard "${name}" berhasil dihapus.`, 'info');
+          closeModal();
+        }
+      );
+    }
+
+    // Reset Data Modal
+    function promptResetData() {
+      if (members.length === 0 && leaderboard.length === 0) {
+        showToast("Tidak ada data anggota atau leaderboard untuk direset.", "info");
+        return;
+      }
+
+      openModal(
+        "Reset Semua Data",
+        "PERINGATAN: Semua rekap data anggota dan papan peringkat (leaderboard) akan dihapus secara permanen!",
+        () => {
+          members = [];
+          leaderboard = [];
+          saveMembersToStorage();
+          saveLeaderboardToStorage();
+          renderQuotaCards();
+          renderMembersTable();
+          renderLeaderboardTable();
+          populateGamePlayerDropdown();
+          updateStatsBar();
+          showToast("Seluruh data anggota & leaderboard berhasil dibersihkan.", "info");
           closeModal();
         }
       );
