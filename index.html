@@ -71,7 +71,7 @@
         <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
           <i class="fa-solid fa-user-plus text-indigo-400"></i> Form Pendaftaran Anggota
         </h3>
-        <form id="project-form" onsubmit="handleRegister(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+       <form id="project-form" onsubmit="handleRegister(event); return false;" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           <input type="text" id="member-name" placeholder="Nama Lengkap Siswa" required class="bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
           <select id="project-select" required class="bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
             <option value="">-- Pilih Proyek --</option>
@@ -80,7 +80,7 @@
             <option value="UI/UX Design">UI/UX Design (Kuota: 5)</option>
             <option value="Cyber Security">Cyber Security (Kuota: 5)</option>
           </select>
-          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/30">
+          <button type="submit" onclick="handleRegister(event)" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/30">
             Daftar Proyek
           </button>
         </form>
