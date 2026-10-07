@@ -1,9 +1,9 @@
-// Logika Pendaftaran, Kalkulasi Kuota, & Rendering Tabel
 let membersData = [];
 const projectsList = ["Web Development", "Game Dev", "UI/UX Design", "Cyber Security"];
 const MAX_QUOTA = 5;
 
 window.addEventListener('firebase-ready', () => {
+  if (!window.firebaseDb || !window.firebaseRef) return;
   const dbRef = window.firebaseRef(window.firebaseDb, 'members');
   window.firebaseOnValue(dbRef, (snapshot) => {
     const data = snapshot.val();
@@ -62,11 +62,19 @@ function renderMembersTable() {
 }
 
 function handleRegister(e) {
-  e.preventDefault();
-  const name = document.getElementById('member-name').value.trim();
-  const project = document.getElementById('project-select').value;
+  if (e) e.preventDefault();
+  const nameInput = document.getElementById('member-name');
+  const projectSelect = document.getElementById('project-select');
   
-  if (!name || !project) return;
+  if (!nameInput || !projectSelect) return;
+  
+  const name = nameInput.value.trim();
+  const project = projectSelect.value;
+  
+  if (!name || !project) {
+    alert('Mohon isi nama dan pilih proyek terlebih dahulu!');
+    return;
+  }
 
   const currentCount = membersData.filter(m => m.project === project).length;
   if (currentCount >= MAX_QUOTA) {
@@ -81,6 +89,8 @@ function handleRegister(e) {
     date: new Date().toLocaleDateString('id-ID')
   }).then(() => {
     document.getElementById('project-form').reset();
+  }).catch((err) => {
+    alert('Gagal menyimpan data: ' + err.message);
   });
 }
 
@@ -90,3 +100,8 @@ function deleteMember(id) {
     window.firebaseRemove(itemRef);
   }
 }
+
+// Global Exports
+window.handleRegister = handleRegister;
+window.deleteMember = deleteMember;
+window.renderMembersTable = renderMembersTable;
