@@ -1,29 +1,46 @@
-/* Pengaturan Cetak / Export Rekap */
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+/* Masking Role Access */
+body.role-guest .member-only,
+body.role-guest .admin-only { display: none !important; }
+
+body.role-member .admin-only { display: none !important; }
+body.role-member .guest-only { display: none !important; }
+
+body.role-admin .guest-only { display: none !important; }
+
+/* Animation Feedback */
+.correct-anim {
+  animation: pulse-green 0.4s ease-in-out;
+  background-color: #16a34a !important;
+  border-color: #22c55e !important;
+  color: white !important;
+}
+
+.wrong-anim {
+  animation: pulse-red 0.4s ease-in-out;
+  background-color: #dc2626 !important;
+  border-color: #ef4444 !important;
+  color: white !important;
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulse-red {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+/* Print Settings */
 @media print {
   .no-print { display: none !important; }
-  .print-only { display: block !important; }
   body { background: white; color: black; }
-}
-
-/* Kustom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar { width: 6px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-
-/* Sembunyikan elemen sesuai role yang aktif secara otomatis */
-body.role-guest .member-only,
-body.role-guest .admin-only {
-  display: none !important;
-}
-
-body.role-member .admin-only {
-  display: none !important;
-}
-
-body.role-member .guest-only {
-  display: none !important;
-}
-
-body.role-admin .guest-only {
-  display: none !important;
 }
