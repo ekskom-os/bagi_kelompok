@@ -1,1573 +1,973 @@
-<!DOCTYPE html>
-<html lang="id" class="h-full bg-slate-900 text-slate-100">
+<!DOCTYPE1 html>
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Pembagian Proyek Ekskul Komputer</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts: Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Ekskul Komputer - Pembagian Proyek & Game CT</title>
   
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#f0f9ff',
-              100: '#e0f2fe',
-              500: '#0284c7',
-              600: '#0284c7',
-              700: '#0369a1',
-            }
-          }
-        }
-      }
-    }
+  <!-- Tailwind CSS & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase v10 SDKs (Modular via CDN) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // Konfigurasi Firebase eksplisit
+    const firebaseConfig = {
+      apiKey: "AIzaSyBdei2SbuMUaQ-womyAs00pCvCexmS4wQY",
+      authDomain: "ekskom-os.firebaseapp.com",
+      databaseURL: "https://ekskom-os-default-rtdb.firebaseio.com",
+      projectId: "ekskom-os",
+      storageBucket: "ekskom-os.firebasestorage.app",
+      messagingSenderId: "247935939839",
+      appId: "1:247935939839:web:4ff24dff12de9d997548ca",
+      measurementId: "G-JEDZRXB1ZZ"
+    };
+
+    // Inisialisasi Firebase App & Database
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Ekspos objek ke global window agar fungsi aplikasi dapat mengakses Firebase
+    window.firebaseApp = app;
+    window.firebaseDb = db;
+    window.firebaseRef = ref;
+    window.firebaseSet = set;
+    window.firebaseOnValue = onValue;
+    window.firebaseRemove = remove;
+
+    // Beri tahu aplikasi bahwa Firebase siap
+    window.dispatchEvent(new Event('firebase-ready'));
   </script>
+
   <style>
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0f172a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #475569;
-    }
     @media print {
       .no-print { display: none !important; }
-      body { background: white !important; color: black !important; }
-      .print-card { border: 1px solid #ccc !important; box-shadow: none !important; background: white !important; color: black !important; }
+      .print-only { display: block !important; }
+      body { background: white; color: black; }
     }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+    .custom-scrollbar::-webkit-scrollbar-gradient { background: #888; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
   </style>
 </head>
-<body class="font-sans antialiased min-h-full flex flex-col bg-slate-950 text-slate-100">
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased">
 
-  <!-- Header / Navbar -->
-  <header class="no-print sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+  <!-- TOP HEADER -->
+  <header class="bg-slate-800/80 backdrop-blur-md border-b border-slate-700 sticky top-0 z-40 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-          <i class="fa-solid fa-laptop-code text-white text-lg"></i>
+        <div class="p-2 bg-indigo-600 rounded-lg shadow-lg">
+          <i class="fa-solid fa-laptop-code text-xl text-white"></i>
         </div>
         <div>
-          <h1 class="font-bold text-lg text-white leading-tight">Projek Ekskul Komputer</h1>
-          <p class="text-xs text-slate-400">Sistem Pembagian Kelompok (Kapasitas: 70 Anggota)</p>
+          <h1 class="font-bold text-lg leading-tight">Ekskul Komputer OS</h1>
+          <p class="text-xs text-slate-400">Sistem Pembagian Proyek & Game Logika CT (70 Kuota)</p>
         </div>
       </div>
-      
-      <!-- Quick Status Badges -->
-      <div class="flex items-center space-x-2">
-        <div class="bg-slate-800/80 border border-slate-700/60 rounded-lg px-3 py-1.5 flex items-center space-x-2">
-          <i class="fa-solid fa-users text-cyan-400 text-sm"></i>
-          <span class="text-xs text-slate-300">Terdaftar:</span>
-          <span id="registeredCountBadge" class="font-bold text-sm text-cyan-400">0</span>
-          <span class="text-xs text-slate-500">/ 70</span>
-        </div>
-      </div>
-    </div>
 
-    <!-- Tab Navigation Bar -->
-    <div class="bg-slate-900/60 border-t border-slate-800/80 no-print">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 sm:space-x-4 py-2 overflow-x-auto">
-        <button id="navProjectsBtn" onclick="switchTab('projects')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center space-x-2 transition bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-          <i class="fa-solid fa-diagram-project"></i>
-          <span>Pembagian Proyek</span>
+      <!-- Navigation Tabs -->
+      <nav class="flex bg-slate-900/60 p-1 rounded-xl border border-slate-700/60">
+        <button id="tab-btn-projects" onclick="switchTab('projects')" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white shadow">
+          <i class="fa-solid fa-diagram-project mr-1.5"></i>Proyek
         </button>
-        <button id="navGameBtn" onclick="switchTab('game')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center space-x-2 transition bg-slate-800 text-slate-400 hover:text-white border border-transparent">
-          <i class="fa-solid fa-brain text-amber-400"></i>
-          <span>Tes Logika CT</span>
-          <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] px-1.5 py-0.5 rounded-full font-bold">GAME</span>
+        <button id="tab-btn-game" onclick="switchTab('game')" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-gamepad mr-1.5"></i>Tes Logika CT
         </button>
-        <button id="navLeaderboardBtn" onclick="switchTab('leaderboard')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center space-x-2 transition bg-slate-800 text-slate-400 hover:text-white border border-transparent">
-          <i class="fa-solid fa-trophy text-yellow-400"></i>
-          <span>Peringkat Poin</span>
-          <span id="topLeaderBadge" class="bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 text-[10px] px-1.5 py-0.5 rounded-full font-bold">Top 1</span>
+        <button id="tab-btn-leaderboard" onclick="switchTab('leaderboard')" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-trophy mr-1.5"></i>Peringkat (Realtime)
         </button>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center space-x-2">
+        <button onclick="exportJSON()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded-lg font-medium transition flex items-center gap-1.5">
+          <i class="fa-solid fa-download"></i> Export JSON
+        </button>
+        <label class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded-lg font-medium transition flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-upload"></i> Import JSON
+          <input type="file" id="json-input" class="hidden" accept=".json" onchange="importJSON(event)">
+        </label>
       </div>
     </div>
   </header>
 
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-    
-    <!-- Toast Notification Overlay -->
-    <div id="toastContainer" class="fixed top-20 right-4 z-50 space-y-2 pointer-events-none"></div>
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-    <!-- TAB 1: PROJECT DIVISION (Existing View) -->
-    <div id="projectsTab" class="space-y-8">
-      <!-- Summary Stats Bar -->
-      <section class="grid grid-cols-1 md:grid-cols-4 gap-4 no-print">
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Proyek Penuh</p>
-        <div class="mt-2 flex items-baseline justify-between">
-          <span id="statFullProjects" class="text-3xl font-extrabold text-amber-400">0</span>
-          <span class="text-xs text-slate-500">Dari 5 Proyek</span>
+    <!-- STATUS BAR -->
+    <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4 no-print">
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 flex items-center space-x-3">
+        <div class="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-lg">
+          <i class="fa-solid fa-users text-lg"></i>
         </div>
-        <p class="mt-3 text-xs text-slate-500">Sub-proyek terkunci jika kuota penuh</p>
-      </div>
-
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group">
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Manajemen JSON Data</p>
-        <div class="mt-3 flex items-center space-x-2">
-          <button onclick="exportJSON()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-xs text-cyan-300 font-semibold py-2 px-3 rounded-lg border border-slate-700 transition flex items-center justify-center space-x-1.5">
-            <i class="fa-solid fa-download"></i>
-            <span>Export</span>
-          </button>
-          <button onclick="triggerImportJSON()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-xs text-indigo-300 font-semibold py-2 px-3 rounded-lg border border-slate-700 transition flex items-center justify-center space-x-1.5">
-            <i class="fa-solid fa-upload"></i>
-            <span>Import</span>
-          </button>
-          <input type="file" id="jsonFileInput" class="hidden" accept=".json" onchange="importJSON(event)">
-        </div>
-        <p class="mt-2 text-[10px] text-slate-500 text-center">Simpan & pulihkan data kapan saja</p>
-      </div>
-    </section>
-
-    <!-- Registration Form & Project Status Grid -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 no-print">
-      
-      <!-- Registration Form (4 cols) -->
-      <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
-        <div class="flex items-center space-x-3 border-b border-slate-800 pb-4">
-          <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-            <i class="fa-solid fa-user-plus text-sm"></i>
-          </div>
-          <div>
-            <h2 class="text-base font-bold text-white">Form Pendaftaran Anggota</h2>
-            <p class="text-xs text-slate-400">Pilih proyek & sub-proyek sesuai minat</p>
-          </div>
-        </div>
-
-        <form id="registrationForm" onsubmit="handleRegister(event)" class="space-y-4">
-          <div>
-            <label for="memberName" class="block text-xs font-semibold text-slate-300 mb-1.5">Nama Lengkap Siswa</label>
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 text-xs">
-                <i class="fa-solid fa-user"></i>
-              </span>
-              <input type="text" id="memberName" required placeholder="Contoh: Muhammad Rizky" 
-                class="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition">
-            </div>
-          </div>
-
-          <div>
-            <label for="memberClass" class="block text-xs font-semibold text-slate-300 mb-1.5">Kelas / Jurusan</label>
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 text-xs">
-                <i class="fa-solid fa-graduation-cap"></i>
-              </span>
-              <input type="text" id="memberClass" required placeholder="Contoh: X RPL 1, XI TKJ 2, X IPA 3" 
-                class="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition">
-            </div>
-          </div>
-
-          <div>
-            <label for="mainProjectSelect" class="block text-xs font-semibold text-slate-300 mb-1.5">Pilihan Proyek Utama</label>
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 text-xs">
-                <i class="fa-solid fa-diagram-project"></i>
-              </span>
-              <select id="mainProjectSelect" required onchange="onMainProjectChange()"
-                class="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition appearance-none">
-                <option value="" disabled selected>-- Pilih Proyek Utama --</option>
-              </select>
-              <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500 text-xs">
-                <i class="fa-solid fa-chevron-down"></i>
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <label for="subProjectSelect" class="block text-xs font-semibold text-slate-300 mb-1.5">Sub-Proyek / Peran Spesifik</label>
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 text-xs">
-                <i class="fa-solid fa-list-check"></i>
-              </span>
-              <select id="subProjectSelect" required disabled
-                class="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition appearance-none disabled:opacity-50 disabled:cursor-not-allowed">
-                <option value="" disabled selected>-- Pilih Proyek Utama Dahulu --</option>
-              </select>
-              <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500 text-xs">
-                <i class="fa-solid fa-chevron-down"></i>
-              </span>
-            </div>
-            <p id="subQuotaHint" class="mt-1 text-[11px] text-slate-400">Pilih proyek utama untuk melihat opsi sub-proyek.</p>
-          </div>
-
-          <button type="submit" id="submitBtn" class="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-cyan-500/20 active:scale-[0.98] transition duration-150 flex items-center justify-center space-x-2">
-            <i class="fa-solid fa-paper-plane"></i>
-            <span>Daftar Sekarang</span>
-          </button>
-        </form>
-      </div>
-
-      <!-- Project Overview Cards (7 cols) -->
-      <div class="lg:col-span-7 space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-base font-bold text-white flex items-center space-x-2">
-            <i class="fa-solid fa-chart-pie text-cyan-400"></i>
-            <span>Status Kuota Proyek (5 Proyek Utama)</span>
-          </h2>
-          <span class="text-xs text-slate-400">Maks. 14 Anggota / Proyek Utama</span>
-        </div>
-
-        <div id="projectsQuotaContainer" class="space-y-3 max-h-[480px] overflow-y-auto pr-1">
-          <!-- Dynamically populated project cards -->
-        </div>
-      </div>
-    </section>
-
-    <!-- Rekap Anggota & Search Section -->
-    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-      
-      <!-- Header Controls -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5 no-print">
         <div>
-          <h2 class="text-lg font-bold text-white flex items-center space-x-2">
-            <i class="fa-solid fa-users-rectangle text-cyan-400"></i>
-            <span>Rekapitulasi Anggota Kelompok</span>
-          </h2>
-          <p class="text-xs text-slate-400">Daftar lengkap pembagian tim dan sub-proyek ekskul</p>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-2">
-          <!-- Search Input -->
-          <div class="relative flex-1 sm:w-64">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 text-xs">
-              <i class="fa-solid fa-magnifying-glass"></i>
-            </span>
-            <input type="text" id="searchInput" oninput="renderMembersTable()" placeholder="Cari nama / kelas..." 
-              class="w-full pl-9 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
-          </div>
-
-          <!-- Project Filter -->
-          <select id="projectFilter" onchange="renderMembersTable()" class="bg-slate-950 border border-slate-800 rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
-            <option value="ALL">Semua Proyek Utama</option>
-            <!-- Populated via JS -->
-          </select>
-
-          <!-- Print Button -->
-          <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white py-1.5 px-3 rounded-lg border border-slate-700 text-xs font-semibold transition flex items-center space-x-1.5">
-            <i class="fa-solid fa-print"></i>
-            <span>Cetak / PDF</span>
-          </button>
-
-          <!-- Reset Button -->
-          <button onclick="promptResetData()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 py-1.5 px-3 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5">
-            <i class="fa-solid fa-trash-can"></i>
-            <span>Reset Data</span>
-          </button>
+          <p class="text-xs text-slate-400">Total Anggota Terdaftar</p>
+          <p class="text-lg font-bold text-white"><span id="stat-total-registered">0</span> / 70</p>
         </div>
       </div>
 
-      <!-- Printable Header Title -->
-      <div class="hidden print:block text-center border-b pb-4 mb-4">
-        <h1 class="text-2xl font-bold text-black">Daftar Pembagian Proyek Ekskul Komputer</h1>
-        <p class="text-sm text-gray-600">Total Anggota: <span id="printTotalCount">0</span> Siswa</p>
-      </div>
-
-      <!-- Members Table -->
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-slate-300">
-          <thead class="bg-slate-950/80 text-xs uppercase text-slate-400 border-b border-slate-800 font-semibold">
-            <tr>
-              <th class="py-3 px-4 w-12 text-center">No</th>
-              <th class="py-3 px-4">Nama Siswa</th>
-              <th class="py-3 px-4">Kelas</th>
-              <th class="py-3 px-4">Proyek Utama</th>
-              <th class="py-3 px-4">Sub-Proyek / Peran</th>
-              <th class="py-3 px-4 text-xs">Waktu Daftar</th>
-              <th class="py-3 px-4 text-center no-print w-20">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="membersTableBody" class="divide-y divide-slate-800/60 font-medium">
-            <!-- Dynamic rows -->
-          </tbody>
-        </table>
-        
-        <!-- Empty State -->
-        <div id="emptyState" class="hidden py-12 text-center text-slate-500 space-y-2">
-          <i class="fa-solid fa-folder-open text-4xl mb-2 text-slate-600"></i>
-          <p class="text-sm">Belum ada anggota yang mendaftar atau data tidak ditemukan.</p>
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 flex items-center space-x-3">
+        <div class="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-lg">
+          <i class="fa-solid fa-chart-pie text-lg"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400">Sisa Kuota Sistem</p>
+          <p class="text-lg font-bold text-emerald-400"><span id="stat-quota-left">70</span> Kursi</p>
         </div>
       </div>
 
-    </section>
-    </div> <!-- END TAB 1 -->
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 flex items-center space-x-3">
+        <div class="p-2.5 bg-amber-500/10 text-amber-400 rounded-lg">
+          <i class="fa-solid fa-trophy text-lg"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400">Poin Tertinggi CT</p>
+          <p class="text-lg font-bold text-amber-400"><span id="stat-top-score">0</span> Pts</p>
+        </div>
+      </div>
 
-    <!-- TAB 2: LOGIC & COMPUTATIONAL THINKING GAME -->
-    <div id="gameTab" class="hidden space-y-8">
-      
-      <!-- Game Intro Banner -->
-      <div class="bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-cyan-500/10 border border-amber-500/20 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
-        <div class="space-y-2 max-w-2xl">
-          <div class="inline-flex items-center space-x-2 bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-semibold">
-            <i class="fa-solid fa-lightbulb"></i>
-            <span>Asah Kemampuan Berpikir Komputasional</span>
-          </div>
-          <h2 class="text-2xl font-extrabold text-white">Tes Logika CT & Algoritma</h2>
-          <p class="text-xs text-slate-300 leading-relaxed">
-            Selesaikan soal logika, pengenalan pola (*pattern recognition*), ekspresi biner, dan penelusuran kode (*code tracing*). Raih skor tertinggi untuk masuk ke jajaran peringkat ekskul!
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 flex items-center space-x-3">
+        <div class="p-2.5 bg-sky-500/10 text-sky-400 rounded-lg">
+          <i class="fa-solid fa-wifi text-lg"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400">Koneksi Database</p>
+          <p id="stat-connection-status" class="text-xs font-semibold text-emerald-400 flex items-center gap-1 mt-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Firebase Sync
           </p>
         </div>
-        <div class="flex items-center space-x-3 bg-slate-950/80 p-4 rounded-xl border border-slate-800 text-center min-w-[200px] justify-center">
-          <div>
-            <p class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Rekor Poin Kamu</p>
-            <p id="playerHighScoreDisplay" class="text-2xl font-black text-amber-400">0 PTS</p>
+      </div>
+    </div>
+
+    <!-- TAB 1: PROYEK & PENDAFTARAN -->
+    <div id="tab-content-projects" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- FORM INPUT -->
+        <div class="lg:col-span-1 bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-xl h-fit">
+          <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-user-plus text-indigo-400"></i> Form Pilih Proyek Anggota
+          </h2>
+
+          <form id="project-form" onsubmit="handleRegistration(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Lengkap</label>
+              <input type="text" id="student-name" required placeholder="Contoh: Muhammad Rizky" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Kelas</label>
+              <input type="text" id="student-class" required placeholder="Contoh: X-RPL-1 atau XI-TKJ" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Proyek Utama (Maks 14 Orang)</label>
+              <select id="main-project-select" required onchange="updateSubProjectOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                <option value="">-- Pilih Proyek Utama --</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Sub-Proyek / Peran</label>
+              <select id="sub-project-select" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                <option value="">-- Pilih Proyek Utama Terlebih Dahulu --</option>
+              </select>
+            </div>
+
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-sm shadow-lg transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-paper-plane"></i> Simpan Pendaftaran
+            </button>
+          </form>
+        </div>
+
+        <!-- REKAP PROYEK & PROGRESS BAR -->
+        <div class="lg:col-span-2 space-y-4">
+          <h2 class="text-base font-bold text-white flex items-center justify-between">
+            <span><i class="fa-solid fa-list-check text-indigo-400 mr-2"></i>Status Kuota Proyek Utama & Sub-Proyek</span>
+          </h2>
+
+          <div id="project-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Cards rendered dynamically -->
           </div>
         </div>
       </div>
 
-      <!-- Game Container / Card -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+      <!-- TABEL REKAP ANGGOTA -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-xl">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-users-rectangle text-indigo-400"></i> Rekapitulasi Pembagian Kelompok
+          </h2>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto no-print">
+            <input type="text" id="search-input" onkeyup="renderTable()" placeholder="Cari nama atau kelas..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500 w-full sm:w-48">
+            
+            <select id="filter-project" onchange="renderTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+              <option value="">Semua Proyek</option>
+            </select>
+
+            <button onclick="window.print()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded-lg font-medium transition flex items-center gap-1.5">
+              <i class="fa-solid fa-print"></i> Cetak/PDF
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 border-b border-slate-700">
+              <tr>
+                <th class="py-3 px-4">#</th>
+                <th class="py-3 px-4">Nama Anggota</th>
+                <th class="py-3 px-4">Kelas</th>
+                <th class="py-3 px-4">Proyek Utama</th>
+                <th class="py-3 px-4">Sub-Proyek</th>
+                <th class="py-3 px-4 text-center no-print">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="member-table-body" class="divide-y divide-slate-700/50">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: GAME TES LOGIKA CT -->
+    <div id="tab-content-game" class="hidden space-y-6">
+      <div class="max-w-2xl mx-auto bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl">
         
-        <!-- START SCREEN -->
-        <div id="gameStartScreen" class="space-y-6 text-center max-w-xl mx-auto py-8">
-          <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
-            <i class="fa-solid fa-brain text-white text-3xl"></i>
+        <!-- GAME START SCREEN -->
+        <div id="game-screen-start" class="text-center space-y-4">
+          <div class="w-16 h-16 bg-indigo-600/20 text-indigo-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-indigo-500/30">
+            <i class="fa-solid fa-brain"></i>
           </div>
-          <div>
-            <h3 class="text-xl font-extrabold text-white">Siap Menguji Logika Kamu?</h3>
-            <p class="text-xs text-slate-400 mt-1">Satu sesi terdiri dari 5 soal acak. Setiap jawaban benar +100 poin (+ bonus kecepatan).</p>
+          <h2 class="text-xl font-bold text-white">Tes Logika Berpikir Komputasional</h2>
+          <p class="text-xs text-slate-400 max-w-md mx-auto">
+            Uji kemampuan logika dasar komputer Anda (Biner, Code Tracing, Gerbang Logika, Pola). Poin Anda akan otomatis tersimpan secara real-time ke Leaderboard!
+          </p>
+
+          <div class="text-left bg-slate-900/80 p-4 rounded-xl border border-slate-700 space-y-3">
+            <label class="block text-xs font-semibold text-slate-300">Pilih Profil Anggota untuk Memulai Game:</label>
+            <select id="game-player-select" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+              <option value="">-- Pilih Nama Anda --</option>
+            </select>
+            <p class="text-[11px] text-slate-500">*Pastikan nama Anda sudah terdaftar di tab Proyek terlebih dahulu.</p>
           </div>
 
-          <!-- Select Player Profile / Input Name -->
-          <div class="text-left bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
-            <label class="block text-xs font-semibold text-slate-300">Pilih / Masukkan Nama Pemain:</label>
-            <div class="grid grid-cols-1 gap-3">
-              <select id="gamePlayerSelect" onchange="toggleCustomPlayerInput()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-amber-500/50">
-                <option value="">-- Pilih Anggota Terdaftar --</option>
-                <!-- Populated dynamically from members list -->
-              </select>
-              <div id="customPlayerBox" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <input type="text" id="gameCustomName" placeholder="Nama Lengkap..." class="bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-amber-500/50">
-                <input type="text" id="gameCustomClass" placeholder="Kelas (Contoh: X RPL 1)" class="bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:ring-2 focus:ring-amber-500/50">
-              </div>
-            </div>
-          </div>
-
-          <button onclick="startCTGame()" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-sm rounded-xl shadow-lg shadow-amber-500/20 active:scale-[0.98] transition duration-150 flex items-center justify-center space-x-2">
-            <i class="fa-solid fa-play"></i>
-            <span>Mulai Tes Logika Now</span>
+          <button onclick="startGame()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg text-sm shadow-lg transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-play"></i> Mulai Tes Logika Sekarang
           </button>
         </div>
 
-        <!-- ACTIVE GAME SCREEN -->
-        <div id="gamePlayScreen" class="hidden space-y-6">
-          <!-- Game Header Status -->
-          <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <!-- GAME QUIZ SCREEN -->
+        <div id="game-screen-quiz" class="hidden space-y-5">
+          <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-semibold text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md border border-indigo-500/20">Soal <span id="quiz-question-num">1</span>/5</span>
+              <span id="quiz-topic-badge" class="text-xs text-slate-400 bg-slate-700 px-2.5 py-1 rounded-md">Topik</span>
+            </div>
             <div class="flex items-center space-x-3">
-              <span id="questionNumBadge" class="bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold px-3 py-1 rounded-lg">Soal 1 / 5</span>
-              <span id="categoryBadge" class="bg-slate-800 text-slate-300 text-[11px] px-2.5 py-1 rounded-lg font-medium">Algoritma</span>
-            </div>
-            
-            <div class="flex items-center space-x-4">
-              <!-- Timer -->
-              <div class="flex items-center space-x-2 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800">
-                <i class="fa-solid fa-stopwatch text-amber-400 text-xs"></i>
-                <span id="gameTimer" class="font-mono font-bold text-amber-400 text-sm">20s</span>
-              </div>
-              <!-- Score -->
-              <div class="flex items-center space-x-2 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800">
-                <i class="fa-solid fa-star text-yellow-400 text-xs"></i>
-                <span id="currentGameScore" class="font-mono font-bold text-white text-sm">0</span>
-              </div>
+              <div class="text-amber-400 text-xs font-bold"><i class="fa-solid fa-star mr-1"></i><span id="quiz-score">0</span> Pts</div>
+              <div class="text-rose-400 text-xs font-bold bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20"><i class="fa-solid fa-stopwatch mr-1"></i><span id="quiz-timer">20</span>s</div>
             </div>
           </div>
 
-          <!-- Question Content Box -->
-          <div class="space-y-4">
-            <h4 id="questionTitle" class="text-base sm:text-lg font-bold text-white leading-relaxed">
-              <!-- Dynamic Question Title -->
-            </h4>
-            
-            <div id="questionCodeBlock" class="hidden bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-amber-300 overflow-x-auto whitespace-pre">
-              <!-- Code or pattern snippet -->
+          <div>
+            <h3 id="quiz-question-text" class="text-base font-semibold text-white mb-4">Pertanyaan akan muncul di sini?</h3>
+            <div id="quiz-options-container" class="space-y-2.5">
+              <!-- Options rendered dynamically -->
             </div>
           </div>
 
-          <!-- Multiple Choice Options -->
-          <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            <!-- Dynamic Options Buttons -->
+          <!-- Explanation Box -->
+          <div id="quiz-explanation-box" class="hidden p-3 bg-slate-900 border border-slate-700 rounded-lg text-xs space-y-1">
+            <p class="font-bold text-indigo-400" id="quiz-explain-title">Penjelasan Logika:</p>
+            <p class="text-slate-300" id="quiz-explain-text"></p>
           </div>
 
-          <!-- Answer Feedback Box -->
-          <div id="feedbackBox" class="hidden p-4 rounded-xl border text-xs space-y-1 transition">
-            <!-- Dynamic feedback -->
-          </div>
-
-          <div class="flex justify-end pt-2">
-            <button id="nextQuestionBtn" onclick="nextQuestion()" disabled class="px-5 py-2.5 bg-slate-800 text-slate-500 cursor-not-allowed font-bold text-xs rounded-xl transition flex items-center space-x-2">
-              <span>Soal Berikutnya</span>
-              <i class="fa-solid fa-arrow-right"></i>
-            </button>
-          </div>
+          <button id="quiz-next-btn" onclick="nextQuestion()" class="hidden w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg text-sm transition">
+            Lanjut ke Soal Berikutnya <i class="fa-solid fa-arrow-right ml-1"></i>
+          </button>
         </div>
 
         <!-- GAME RESULT SCREEN -->
-        <div id="gameResultScreen" class="hidden text-center space-y-6 max-w-lg mx-auto py-6">
-          <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-yellow-400 to-amber-500 flex items-center justify-center shadow-xl shadow-amber-500/20 animate-bounce">
-            <i class="fa-solid fa-trophy text-slate-950 text-3xl"></i>
+        <div id="game-screen-result" class="hidden text-center space-y-5">
+          <div class="w-16 h-16 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto text-3xl border border-amber-500/30">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">Tes Selesai!</h2>
+            <p class="text-xs text-slate-400">Hasil tes logika telah dikirimkan ke Firebase Realtime Database.</p>
           </div>
 
-          <div class="space-y-2">
-            <h3 class="text-2xl font-black text-white">Sesi Selesai!</h3>
-            <p id="resultPlayerName" class="text-xs text-slate-300 font-semibold">Muhammad Rizky - X RPL 1</p>
-          </div>
-
-          <!-- Result Breakdown Cards -->
-          <div class="grid grid-cols-3 gap-3">
-            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-              <p class="text-[10px] text-slate-400 uppercase font-semibold">Total Poin</p>
-              <p id="resultTotalScore" class="text-xl font-extrabold text-amber-400 mt-1">450</p>
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 grid grid-cols-2 gap-4 text-center">
+            <div>
+              <p class="text-xs text-slate-400">Total Skor</p>
+              <p id="res-total-score" class="text-2xl font-black text-amber-400">0</p>
             </div>
-            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-              <p class="text-[10px] text-slate-400 uppercase font-semibold">Benar</p>
-              <p id="resultCorrectCount" class="text-xl font-extrabold text-emerald-400 mt-1">4/5</p>
-            </div>
-            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-              <p class="text-[10px] text-slate-400 uppercase font-semibold">Rata-Rata Waktu</p>
-              <p id="resultAvgTime" class="text-xl font-extrabold text-cyan-400 mt-1">8.2s</p>
+            <div>
+              <p class="text-xs text-slate-400">Akurasi</p>
+              <p id="res-accuracy" class="text-2xl font-black text-emerald-400">0%</p>
             </div>
           </div>
 
-          <div id="leaderboardNotice" class="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl font-medium">
-            <i class="fa-solid fa-circle-check mr-1"></i> Skor berhasil diperbarui di Peringkat Poin!
-          </div>
-
-          <div class="flex justify-center space-x-3 pt-2">
-            <button onclick="resetGameScreen()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition flex items-center space-x-1.5">
-              <i class="fa-solid fa-rotate-right"></i>
-              <span>Coba Lagi</span>
+          <div class="flex gap-3">
+            <button onclick="resetGameScreen()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-lg text-sm font-medium transition">
+              Coba Lagi
             </button>
-            <button onclick="switchTab('leaderboard')" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 shadow-lg shadow-amber-500/20">
-              <i class="fa-solid fa-trophy"></i>
-              <span>Lihat Leaderboard</span>
+            <button onclick="switchTab('leaderboard')" class="w-1/2 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-lg text-sm font-medium transition">
+              Lihat Leaderboard
             </button>
           </div>
         </div>
 
       </div>
-    </div> <!-- END TAB 2 -->
+    </div>
 
-    <!-- TAB 3: LEADERBOARD / PERINGKAT POIN TERGI -->
-    <div id="leaderboardTab" class="hidden space-y-8">
+    <!-- TAB 3: LEADERBOARD REALTIME -->
+    <div id="tab-content-leaderboard" class="hidden space-y-6">
       
-      <!-- Leaderboard Top 3 Podium Card -->
-      <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-          <div>
-            <h2 class="text-lg font-bold text-white flex items-center space-x-2">
-              <i class="fa-solid fa-crown text-yellow-400"></i>
-              <span>Papan Peringkat Berpikir Komputasional</span>
-            </h2>
-            <p class="text-xs text-slate-400">Peringkat poin tertinggi hasil tes logika anggota ekskul</p>
-          </div>
-          <button onclick="renderLeaderboardTable()" class="self-start sm:self-auto text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5">
-            <i class="fa-solid fa-arrows-rotate"></i>
-            <span>Refresh Rank</span>
-          </button>
+      <!-- PODIUM JUARA 1, 2, 3 -->
+      <div id="podium-container" class="grid grid-cols-3 gap-4 max-w-xl mx-auto items-end pt-6 pb-2">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- TABEL LEADERBOARD FULL -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-xl">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-ranking-star text-amber-400"></i> Papan Peringkat Skor Logika (Real-time Firebase)
+          </h2>
+          <span class="text-xs text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
+            <i class="fa-solid fa-bolt mr-1"></i> Live Updated
+          </span>
         </div>
 
-        <!-- Top 3 Podium Visual -->
-        <div id="topPodiumContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <!-- Dynamic Top 3 Cards -->
-        </div>
-
-        <!-- Leaderboard Table -->
-        <div class="overflow-x-auto pt-4">
+        <div class="overflow-x-auto">
           <table class="w-full text-left text-sm text-slate-300">
-            <thead class="bg-slate-950/80 text-xs uppercase text-slate-400 border-b border-slate-800 font-semibold">
+            <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 border-b border-slate-700">
               <tr>
-                <th class="py-3 px-4 w-16 text-center">Rank</th>
-                <th class="py-3 px-4">Nama Siswa</th>
+                <th class="py-3 px-4">Peringkat</th>
+                <th class="py-3 px-4">Nama Anggota</th>
                 <th class="py-3 px-4">Kelas</th>
-                <th class="py-3 px-4 text-center">Skor Tertinggi</th>
-                <th class="py-3 px-4 text-center">Akurasi</th>
-                <th class="py-3 px-4 text-right">Tanggal Main</th>
-                <th class="py-3 px-4 text-center w-16">Aksi</th>
+                <th class="py-3 px-4">Poin CT</th>
+                <th class="py-3 px-4">Akurasi</th>
+                <th class="py-3 px-4">Waktu Penyelesaian</th>
+                <th class="py-3 px-4 text-center">Aksi</th>
               </tr>
             </thead>
-            <tbody id="leaderboardTableBody" class="divide-y divide-slate-800/60 font-medium">
-              <!-- Dynamic Rows -->
+            <tbody id="leaderboard-table-body" class="divide-y divide-slate-700/50">
+              <!-- Rendered via JS -->
             </tbody>
           </table>
-
-          <div id="emptyLeaderboard" class="hidden py-12 text-center text-slate-500 space-y-2">
-            <i class="fa-solid fa-trophy text-4xl text-slate-700 mb-2"></i>
-            <p class="text-sm">Belum ada skor yang terdaftar. Jadilah yang pertama bermain!</p>
-          </div>
         </div>
-      </section>
-
-    </div> <!-- END TAB 3 -->
+      </div>
+    </div>
 
   </main>
 
-  <footer class="no-print mt-auto border-t border-slate-800 bg-slate-900 py-4 text-center text-xs text-slate-500">
-    <p>&copy; 2026 Ekstrakurikuler Komputer. All rights reserved.</p>
-  </footer>
-
-  <!-- Confirmation Modal -->
-  <div id="confirmModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-      <div class="flex items-center space-x-3 text-rose-400">
-        <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
-          <i class="fa-solid fa-triangle-exclamation text-lg"></i>
-        </div>
-        <h3 id="modalTitle" class="text-lg font-bold text-white">Konfirmasi Action</h3>
-      </div>
-      <p id="modalMessage" class="text-sm text-slate-300">Apakah Anda yakin ingin melakukan tindakan ini?</p>
-      <div class="flex justify-end space-x-3 pt-2">
-        <button onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">Batal</button>
-        <button id="modalConfirmBtn" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-rose-600/20 transition">Ya, Lanjutkan</button>
-      </div>
-    </div>
-  </div>
-
   <script>
-    /*
-      DATA STRUCTURE CONFIGURATION
-      Total Overall Capacity: 70
-      Main Projects: 5
-      Each Main Project Capacity: 14
-      Sub-Projects total sum up to 14 per main project.
-    */
-    const TOTAL_MAX_CAPACITY = 70;
+    // --- APP DATA CONFIGURATION & STATE ---
+    const CONFIG = {
+      TOTAL_SYSTEM_QUOTA: 70,
+      PROJECT_QUOTA: 14,
+      PROJECTS: [
+        {
+          id: 'p1',
+          name: '1. Web Development',
+          subs: [
+            { id: 'p1_sub1', name: 'Sub A: Website Profil & Blog Ekskul', max: 6 },
+            { id: 'p1_sub2', name: 'Sub B: Sistem Inventaris Lab Komputer', max: 5 },
+            { id: 'p1_sub3', name: 'Sub-Tim C: UI/UX & Design Support', max: 3 }
+          ]
+        },
+        {
+          id: 'p2',
+          name: '2. Game Development',
+          subs: [
+            { id: 'p2_sub1', name: 'Sub A: Game Arcade 2D Endless Runner', max: 6 },
+            { id: 'p2_sub2', name: 'Sub B: Game Quiz Edukasi Komputer', max: 5 },
+            { id: 'p2_sub3', name: 'Sub-Tim C: Pixel Asset & Sound Artist', max: 3 }
+          ]
+        },
+        {
+          id: 'p3',
+          name: '3. Desain Grafis & Multimedia',
+          subs: [
+            { id: 'p3_sub1', name: 'Sub A: Mascot Branding & Feed IG', max: 5 },
+            { id: 'p3_sub2', name: 'Sub B: Majalah Digital / Flipbook Sekolah', max: 5 },
+            { id: 'p3_sub3', name: 'Sub C: Video Profil & Teaser Sinematik', max: 4 }
+          ]
+        },
+        {
+          id: 'p4',
+          name: '4. Jaringan & Internet of Things (IoT)',
+          subs: [
+            { id: 'p4_sub1', name: 'Sub A: Simulasi Topologi Cisco Packet Tracer', max: 5 },
+            { id: 'p4_sub2', name: 'Sub B: Otomasi Tempat Sampah/Suhu ESP32', max: 5 },
+            { id: 'p4_sub3', name: 'Sub C: IoT Smart Garden Mini', max: 4 }
+          ]
+        },
+        {
+          id: 'p5',
+          name: '5. Data & Produktivitas Office',
+          subs: [
+            { id: 'p5_sub1', name: 'Sub A: Dashboard VLOOKUP Rekap Kas Ekskul', max: 5 },
+            { id: 'p5_sub2', name: 'Sub B: E-Catalog Perpustakaan Spreadsheet', max: 5 },
+            { id: 'p5_sub3', name: 'Sub C: Automasi Formulir & Sertifikat', max: 4 }
+          ]
+        }
+      ]
+    };
 
-    const PROJECTS_CONFIG = [
+    // Bank Soal Computational Thinking (CT)
+    const QUESTION_BANK = [
       {
-        id: "p1",
-        title: "1. Web Development",
-        icon: "fa-globe",
-        color: "text-blue-400",
-        bg: "bg-blue-500/10",
-        border: "border-blue-500/30",
-        maxQuota: 14,
-        subProjects: [
-          { id: "p1_s1", title: "Website Profil & Portal Ekskul", maxQuota: 6 },
-          { id: "p1_s2", title: "Sistem Inventaris Lab Komputer", maxQuota: 5 },
-          { id: "p1_s3", title: "UI/UX & Asset Designer Web", maxQuota: 3 }
-        ]
+        topic: 'Konversi Biner',
+        question: 'Berapakah nilai desimal dari angka biner 1011(2)?',
+        options: ['11', '13', '9', '15'],
+        answer: 0,
+        explain: '1011 Biner = (1x8) + (0x4) + (1x2) + (1x1) = 8 + 0 + 2 + 1 = 11.'
       },
       {
-        id: "p2",
-        title: "2. Game Development",
-        icon: "fa-gamepad",
-        color: "text-purple-400",
-        bg: "bg-purple-500/10",
-        border: "border-purple-500/30",
-        maxQuota: 14,
-        subProjects: [
-          { id: "p2_s1", title: "Game Arcade 2D (Endless Runner)", maxQuota: 5 },
-          { id: "p2_s2", title: "Game Quiz Edukasi Komputer", maxQuota: 5 },
-          { id: "p2_s3", title: "Game Design, Story & Sound Artist", maxQuota: 4 }
-        ]
+        topic: 'Code Tracing',
+        question: 'Diberikan x = 5. Jika x = x + 3 lalu x = x * 2, berapakah nilai akhir x?',
+        options: ['16', '13', '10', '26'],
+        answer: 0,
+        explain: 'Awal x = 5. x + 3 = 8. Lalu 8 * 2 = 16.'
       },
       {
-        id: "p3",
-        title: "3. Desain Grafis & Multimedia",
-        icon: "fa-palette",
-        color: "text-pink-400",
-        bg: "bg-pink-500/10",
-        border: "border-pink-500/30",
-        maxQuota: 14,
-        subProjects: [
-          { id: "p3_s1", title: "Social Media & Mascot Branding", maxQuota: 5 },
-          { id: "p3_s2", title: "Video Teaser & Dokumenter Ekskul", maxQuota: 5 },
-          { id: "p3_s3", title: "Layout Majalah & E-Catalog Sekolah", maxQuota: 4 }
-        ]
+        topic: 'Gerbang Logika',
+        question: 'Manakah kondisi yang menghasilkan output TRUE pada gerbang logika AND?',
+        options: ['Kedua Input FALSE', 'Salah satu Input TRUE', 'Kedua Input TRUE', 'Semua kondisi benar'],
+        answer: 2,
+        explain: 'Gerbang AND hanya akan menghasilkan logika TRUE jika SEMUA/KEDUA inputnya bernilai TRUE.'
       },
       {
-        id: "p4",
-        title: "4. Jaringan & IoT (Internet of Things)",
-        icon: "fa-microchip",
-        color: "text-emerald-400",
-        bg: "bg-emerald-500/10",
-        border: "border-emerald-500/30",
-        maxQuota: 14,
-        subProjects: [
-          { id: "p4_s1", title: "Sistem Tempat Sampah Otomatis ESP32", maxQuota: 5 },
-          { id: "p4_s2", title: "Pemantau Suhu Lab Komputer", maxQuota: 5 },
-          { id: "p4_s3", title: "Simulasi Topologi Packet Tracer", maxQuota: 4 }
-        ]
+        topic: 'Pattern Recognition',
+        question: 'Perhatikan pola berikut: 2, 4, 8, 16, X. Berapakah nilai X?',
+        options: ['20', '24', '32', '64'],
+        answer: 2,
+        explain: 'Pola ini dikali 2 pada setiap langkah berikutnya (2x2=4, 4x2=8, 8x2=16, 16x2=32).'
       },
       {
-        id: "p5",
-        title: "5. Data Science & Automation",
-        icon: "fa-robot",
-        color: "text-amber-400",
-        bg: "bg-amber-500/10",
-        border: "border-amber-500/30",
-        maxQuota: 14,
-        subProjects: [
-          { id: "p5_s1", title: "Bot Telegram Informasi Sekolah", maxQuota: 5 },
-          { id: "p5_s2", title: "Dashboard Analytics Data Siswa", maxQuota: 5 },
-          { id: "p5_s3", title: "Automasi Spreadsheet & Rekap Nilai", maxQuota: 4 }
-        ]
+        topic: 'Algoritma Pencarian',
+        question: 'Pencarian Biner (Binary Search) mensyaratkan kumpulan data dalam keadaan:',
+        options: ['Terurut (Sorted)', 'Acak (Unsorted)', 'Berjumlah genap', 'Selalu berupa string'],
+        answer: 0,
+        explain: 'Binary Search membagi data menjadi dua bagian, sehingga data WAJIB terurut lebih dulu.'
       }
     ];
 
-    const CT_QUESTIONS_BANK = [
-      {
-        id: 1,
-        category: "Konversi Biner",
-        question: "Berapa nilai desimal dari bilangan biner berikut: 10110?",
-        code: "10110 (Biner) = ... (Desimal)",
-        options: ["18", "22", "26", "14"],
-        answerIndex: 1,
-        explanation: "16 + 0 + 4 + 2 + 0 = 22."
-      },
-      {
-        id: 2,
-        category: "Code Tracing",
-        question: "Berapa nilai variabel X setelah potongan kode berikut dijalankan?",
-        code: "X = 2\nFor i = 1 to 4:\n    X = X + i\nEnd For",
-        options: ["10", "12", "14", "8"],
-        answerIndex: 1,
-        explanation: "Iterasi: i=1 (X=3), i=2 (X=5), i=3 (X=8), i=4 (X=12)."
-      },
-      {
-        id: 3,
-        category: "Pattern Recognition",
-        question: "Tentukan angka berikutnya dalam deret pola bilangan berikut: 3, 7, 15, 31, ...",
-        code: "3, 7, 15, 31, [ ? ]",
-        options: ["63", "45", "62", "58"],
-        answerIndex: 0,
-        explanation: "Pola: (N * 2) + 1. Maka (31 * 2) + 1 = 63."
-      },
-      {
-        id: 4,
-        category: "Gerbang Logika",
-        question: "Jika A = True (1) dan B = False (0), apakah hasil dari ekspresi logika: (A AND B) OR (NOT B)?",
-        code: "A = 1, B = 0\nHasil = (A AND B) OR (NOT B)",
-        options: ["False (0)", "True (1)", "Undefined", "Null"],
-        answerIndex: 1,
-        explanation: "(1 AND 0) = 0. (NOT 0) = 1. Lalu (0 OR 1) = 1 (True)."
-      },
-      {
-        id: 5,
-        category: "Algoritma & Algoritma Pencarian",
-        question: "Berapa jumlah maksimal perbandingan yang diperlukan Binary Search pada 16 data terurut?",
-        code: "Binary Search pada N = 16 elemen",
-        options: ["16 kali", "4 kali", "8 kali", "5 kali"],
-        answerIndex: 1,
-        explanation: "log2(16) = 4 perbandingan maksimal."
-      },
-      {
-        id: 6,
-        category: "Decomposisi / Pengurutan",
-        question: "Manakah urutan logika yang paling efisien untuk memecahkan masalah bug pada program?",
-        code: "1. Replikasi bug\n2. Identifikasi sumber baris kode\n3. Perbaiki & Test\n4. Dokumentasi",
-        options: ["1 -> 2 -> 3 -> 4", "2 -> 1 -> 3 -> 4", "3 -> 1 -> 2 -> 4", "4 -> 1 -> 2 -> 3"],
-        answerIndex: 0,
-        explanation: "Pertama re-produksi bug, lalu temukan kodenya, perbaiki, baru dokumentasikan."
-      },
-      {
-        id: 7,
-        category: "Code Tracing",
-        question: "Apa output dari perkondisian bersarang (*nested IF*) berikut jika Umur = 16 dan KuasaiPython = True?",
-        code: "If Umur >= 15 Then\n   If KuasaiPython Then\n      Print 'Lolos Tim Developer'\n   Else\n      Print 'Masuk Kelas Dasar'\n   End If\nEnd If",
-        options: ["Lolos Tim Developer", "Masuk Kelas Dasar", "Tidak Lolos", "Error Syntax"],
-        answerIndex: 0,
-        explanation: "Umur >= 15 bernilai True, dan KuasaiPython bernilai True."
-      }
+    // Initial Demo Data
+    const INITIAL_MEMBERS = [
+      { id: 'm1', name: 'Muhammad Rizky', kelas: 'X-RPL-1', mainProject: 'p1', subProject: 'p1_sub1' },
+      { id: 'm2', name: 'Siti Nurhaliza', kelas: 'X-RPL-2', mainProject: 'p1', subProject: 'p1_sub1' },
+      { id: 'm3', name: 'Ahmad Farhan', kelas: 'XI-TKJ-1', mainProject: 'p2', subProject: 'p2_sub1' },
+      { id: 'm4', name: 'Dewi Lestari', kelas: 'X-DKV-1', mainProject: 'p3', subProject: 'p3_sub1' },
+      { id: 'm5', name: 'Budi Santoso', kelas: 'XI-RPL-1', mainProject: 'p4', subProject: 'p4_sub2' },
+      { id: 'm6', name: 'Andi Pratama', kelas: 'X-TKJ-2', mainProject: 'p5', subProject: 'p5_sub1' }
     ];
 
-    // State
-    let members = [];
-    let leaderboard = [];
+    let members = JSON.parse(localStorage.getItem('ekskul_members')) || INITIAL_MEMBERS;
+    let leaderboardData = [];
 
-    // Game state variables
-    let gameCurrentQuestions = [];
-    let gameCurrentIndex = 0;
-    let gameScore = 0;
-    let gameCorrectCount = 0;
-    let gameTotalTimeSpent = 0;
-    let gameTimerInterval = null;
-    let gameTimeLeft = 20;
-    let gameSelectedPlayer = { name: "", class: "" };
+    // Game state
+    let currentGame = {
+      playerId: '',
+      playerName: '',
+      playerClass: '',
+      questions: [],
+      currentIndex: 0,
+      score: 0,
+      timer: null,
+      timeLeft: 20
+    };
 
+    // --- INITIALIZATION ---
     window.addEventListener('DOMContentLoaded', () => {
-      loadMembersFromStorage();
-      loadLeaderboardFromStorage();
-      populateMainProjectSelects();
-      renderQuotaCards();
-      renderMembersTable();
-      updateStatsBar();
-      populateGamePlayerDropdown();
-      renderLeaderboardTable();
+      populateMainProjectSelect();
+      renderApp();
+
+      // Listen to Firebase ready event
+      window.addEventListener('firebase-ready', () => {
+        initFirebaseRealtimeListener();
+      });
+      if (window.firebaseDb) {
+        initFirebaseRealtimeListener();
+      }
     });
 
-    // Navigation Tab Switching
-    function switchTab(tabName) {
-      const pTab = document.getElementById('projectsTab');
-      const gTab = document.getElementById('gameTab');
-      const lTab = document.getElementById('leaderboardTab');
+    // FIREBASE REALTIME LISTENER
+    function initFirebaseRealtimeListener() {
+      if (!window.firebaseDb) return;
+      const scoresRef = window.firebaseRef(window.firebaseDb, 'leaderboard');
+      
+      window.firebaseOnValue(scoresRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          leaderboardData = Object.values(data).sort((a, b) => b.score - a.score);
+        } else {
+          leaderboardData = [];
+        }
+        renderLeaderboardUI();
+        updateTopScoreStat();
+      });
+    }
 
-      const pBtn = document.getElementById('navProjectsBtn');
-      const gBtn = document.getElementById('navGameBtn');
-      const lBtn = document.getElementById('navLeaderboardBtn');
+    // --- TAB NAVIGATION ---
+    function switchTab(tab) {
+      document.getElementById('tab-content-projects').classList.add('hidden');
+      document.getElementById('tab-content-game').classList.add('hidden');
+      document.getElementById('tab-content-leaderboard').classList.add('hidden');
 
-      // Hide all
-      pTab.classList.add('hidden');
-      gTab.classList.add('hidden');
-      lTab.classList.add('hidden');
+      document.getElementById('tab-btn-projects').className = "px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200";
+      document.getElementById('tab-btn-game').className = "px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200";
+      document.getElementById('tab-btn-leaderboard').className = "px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200";
 
-      // Reset Styles
-      [pBtn, gBtn, lBtn].forEach(btn => {
-        btn.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center space-x-2 transition bg-slate-800 text-slate-400 hover:text-white border border-transparent";
+      if (tab === 'projects') {
+        document.getElementById('tab-content-projects').classList.remove('hidden');
+        document.getElementById('tab-btn-projects').className = "px-4 py-1.5 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white shadow";
+      } else if (tab === 'game') {
+        document.getElementById('tab-content-game').classList.remove('hidden');
+        document.getElementById('tab-btn-game').className = "px-4 py-1.5 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white shadow";
+        populateGamePlayerSelect();
+      } else if (tab === 'leaderboard') {
+        document.getElementById('tab-content-leaderboard').classList.remove('hidden');
+        document.getElementById('tab-btn-leaderboard').className = "px-4 py-1.5 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white shadow";
+      }
+    }
+
+    // --- RENDER FUNCTIONS ---
+    function renderApp() {
+      saveMembersToLocal();
+      renderStats();
+      renderProjectCards();
+      renderTable();
+      populateFilterProject();
+      populateGamePlayerSelect();
+    }
+
+    function saveMembersToLocal() {
+      localStorage.setItem('ekskul_members', JSON.stringify(members));
+    }
+
+    function renderStats() {
+      const total = members.length;
+      document.getElementById('stat-total-registered').innerText = total;
+      document.getElementById('stat-quota-left').innerText = CONFIG.TOTAL_SYSTEM_QUOTA - total;
+    }
+
+    function updateTopScoreStat() {
+      const top = leaderboardData.length > 0 ? leaderboardData[0].score : 0;
+      document.getElementById('stat-top-score').innerText = top;
+    }
+
+    function populateMainProjectSelect() {
+      const select = document.getElementById('main-project-select');
+      select.innerHTML = '<option value="">-- Pilih Proyek Utama --</option>';
+      CONFIG.PROJECTS.forEach(p => {
+        const count = members.filter(m => m.mainProject === p.id).length;
+        const disabled = count >= CONFIG.PROJECT_QUOTA ? 'disabled' : '';
+        select.innerHTML += `<option value="${p.id}" ${disabled}>${p.name} (${count}/${CONFIG.PROJECT_QUOTA})</option>`;
+      });
+    }
+
+    function updateSubProjectOptions() {
+      const mainId = document.getElementById('main-project-select').value;
+      const subSelect = document.getElementById('sub-project-select');
+      subSelect.innerHTML = '<option value="">-- Pilih Sub-Proyek --</option>';
+
+      if (!mainId) return;
+
+      const projectObj = CONFIG.PROJECTS.find(p => p.id === mainId);
+      if (projectObj) {
+        projectObj.subs.forEach(sub => {
+          const subCount = members.filter(m => m.subProject === sub.id).length;
+          const isFull = subCount >= sub.max;
+          subSelect.innerHTML += `<option value="${sub.id}" ${isFull ? 'disabled' : ''}>
+            ${sub.name} [${subCount}/${sub.max} ${isFull ? 'FULL' : ''}]
+          </option>`;
+        });
+      }
+    }
+
+    function renderProjectCards() {
+      const container = document.getElementById('project-cards-container');
+      container.innerHTML = '';
+
+      CONFIG.PROJECTS.forEach(p => {
+        const mainCount = members.filter(m => m.mainProject === p.id).length;
+        const percent = Math.round((mainCount / CONFIG.PROJECT_QUOTA) * 100);
+
+        let subHTML = '';
+        p.subs.forEach(s => {
+          const subCount = members.filter(m => m.subProject === s.id).length;
+          const subPercent = Math.round((subCount / s.max) * 100);
+          subHTML += `
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-300 truncate max-w-[200px]">${s.name}</span>
+                <span class="font-medium ${subCount >= s.max ? 'text-rose-400 font-bold' : 'text-slate-400'}">${subCount}/${s.max}</span>
+              </div>
+              <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-indigo-500 h-1.5 rounded-full" style="width: ${subPercent}%"></div>
+              </div>
+            </div>
+          `;
+        });
+
+        container.innerHTML += `
+          <div class="bg-slate-800 border border-slate-700/80 rounded-xl p-4 space-y-3">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="font-bold text-sm text-white">${p.name}</h3>
+                <p class="text-xs text-slate-400">Total: ${mainCount} dari ${CONFIG.PROJECT_QUOTA} Anggota</p>
+              </div>
+              <span class="text-xs px-2 py-0.5 rounded font-bold ${percent >= 100 ? 'bg-rose-500/20 text-rose-400' : 'bg-indigo-500/20 text-indigo-400'}">${percent}%</span>
+            </div>
+            <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+              <div class="bg-indigo-500 h-2 rounded-full" style="width: ${percent}%"></div>
+            </div>
+            <div class="pt-2 border-t border-slate-700/50 space-y-2">
+              ${subHTML}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('member-table-body');
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const filter = document.getElementById('filter-project').value;
+
+      tbody.innerHTML = '';
+
+      const filtered = members.filter(m => {
+        const matchSearch = m.name.toLowerCase().includes(search) || m.kelas.toLowerCase().includes(search);
+        const matchFilter = filter ? m.mainProject === filter : true;
+        return matchSearch && matchFilter;
       });
 
-      if (tabName === 'projects') {
-        pTab.classList.remove('hidden');
-        pBtn.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center space-x-2 transition bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
-      } else if (tabName === 'game') {
-        gTab.classList.remove('hidden');
-        gBtn.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center space-x-2 transition bg-amber-500/20 text-amber-300 border border-amber-500/30";
-        populateGamePlayerDropdown();
-      } else if (tabName === 'leaderboard') {
-        lTab.classList.remove('hidden');
-        lBtn.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center space-x-2 transition bg-yellow-500/20 text-yellow-300 border border-yellow-500/30";
-        renderLeaderboardTable();
-      }
-    }
-
-    // Save & Load Local Storage
-    function saveMembersToStorage() {
-      localStorage.setItem('ekskul_members_data', JSON.stringify(members));
-    }
-
-    function saveLeaderboardToStorage() {
-      localStorage.setItem('ekskul_leaderboard_data', JSON.stringify(leaderboard));
-    }
-
-    function loadMembersFromStorage() {
-      const stored = localStorage.getItem('ekskul_members_data');
-      if (stored) {
-        try { members = JSON.parse(stored); } catch (e) { members = []; }
-      }
-      
-      // Inisialisasi Data Demo jika penyimpanan masih kosong
-      if (!members || members.length === 0) {
-        members = [
-          { id: "MBR_DEMO_1", name: "Muhammad Rizky", class: "X RPL 1", mainProjectId: "p1", subProjectId: "p1_s1", registeredAt: "07/10/2026, 09:15" },
-          { id: "MBR_DEMO_2", name: "Siti Nurhaliza", class: "XI RPL 2", mainProjectId: "p1", subProjectId: "p1_s3", registeredAt: "07/10/2026, 09:30" },
-          { id: "MBR_DEMO_3", name: "Ahmad Fauzi", class: "X TKJ 1", mainProjectId: "p2", subProjectId: "p2_s1", registeredAt: "07/10/2026, 10:05" },
-          { id: "MBR_DEMO_4", name: "Dewa Pratama", class: "XI MM 1", mainProjectId: "p2", subProjectId: "p2_s2", registeredAt: "07/10/2026, 10:20" },
-          { id: "MBR_DEMO_5", name: "Budi Santoso", class: "X DKV 2", mainProjectId: "p3", subProjectId: "p3_s1", registeredAt: "07/10/2026, 11:00" },
-          { id: "MBR_DEMO_6", name: "Annisa Rahma", class: "XI DKV 1", mainProjectId: "p3", subProjectId: "p3_s2", registeredAt: "07/10/2026, 11:45" },
-          { id: "MBR_DEMO_7", name: "Farhan Kurniadi", class: "X TJKT 3", mainProjectId: "p4", subProjectId: "p4_s1", registeredAt: "07/10/2026, 13:10" },
-          { id: "MBR_DEMO_8", name: "Rizky Febrian", class: "XI TJKT 1", mainProjectId: "p4", subProjectId: "p4_s2", registeredAt: "07/10/2026, 13:50" },
-          { id: "MBR_DEMO_9", name: "Clarissa Putri", class: "X IPA 2", mainProjectId: "p5", subProjectId: "p5_s1", registeredAt: "07/10/2026, 14:15" },
-          { id: "MBR_DEMO_10", name: "Kevin Sanjaya", class: "XI IPS 1", mainProjectId: "p5", subProjectId: "p5_s2", registeredAt: "07/10/2026, 15:00" }
-        ];
-        saveMembersToStorage();
-      }
-    }
-
-    function loadLeaderboardFromStorage() {
-      const stored = localStorage.getItem('ekskul_leaderboard_data');
-      if (stored) {
-        try { leaderboard = JSON.parse(stored); } catch (e) { leaderboard = []; }
-      }
-
-      // Inisialisasi Leaderboard Demo jika penyimpanan masih kosong
-      if (!leaderboard || leaderboard.length === 0) {
-        leaderboard = [
-          { id: "LDB_DEMO_1", name: "Clarissa Putri", class: "X IPA 2", score: 580, accuracy: 100, date: "7 Okt" },
-          { id: "LDB_DEMO_2", name: "Muhammad Rizky", class: "X RPL 1", score: 520, accuracy: 80, date: "7 Okt" },
-          { id: "LDB_DEMO_3", name: "Farhan Kurniadi", class: "X TJKT 3", score: 470, accuracy: 80, date: "6 Okt" },
-          { id: "LDB_DEMO_4", name: "Siti Nurhaliza", class: "XI RPL 2", score: 410, accuracy: 60, date: "5 Okt" },
-          { id: "LDB_DEMO_5", name: "Budi Santoso", class: "X DKV 2", score: 350, accuracy: 60, date: "4 Okt" }
-        ];
-        saveLeaderboardToStorage();
-      }
-    }
-
-    function populateGamePlayerDropdown() {
-      const select = document.getElementById('gamePlayerSelect');
-      select.innerHTML = '<option value="">-- Pilih Anggota Terdaftar --</option>';
-      
-      members.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = JSON.stringify({ name: m.name, class: m.class });
-        opt.textContent = `${m.name} (${m.class})`;
-        select.appendChild(opt);
-      });
-
-      // Update Player High Score Display if exists
-      const topScore = leaderboard.length > 0 ? Math.max(...leaderboard.map(l => l.score)) : 0;
-      document.getElementById('playerHighScoreDisplay').textContent = `${topScore} PTS`;
-    }
-
-    function toggleCustomPlayerInput() {
-      const selectVal = document.getElementById('gamePlayerSelect').value;
-      const customBox = document.getElementById('customPlayerBox');
-      if (selectVal) {
-        customBox.classList.add('opacity-40', 'pointer-events-none');
-      } else {
-        customBox.classList.remove('opacity-40', 'pointer-events-none');
-      }
-    }
-
-    function startCTGame() {
-      const selectVal = document.getElementById('gamePlayerSelect').value;
-      const customName = document.getElementById('gameCustomName').value.trim();
-      const customClass = document.getElementById('gameCustomClass').value.trim();
-
-      if (selectVal) {
-        gameSelectedPlayer = JSON.parse(selectVal);
-      } else if (customName) {
-        gameSelectedPlayer = { name: customName, class: customClass || 'Anggota Ekskul' };
-      } else {
-        showToast("Pilih anggota terdaftar atau isi nama kamu terlebih dahulu!", "error");
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500 text-xs">Belum ada data anggota.</td></tr>`;
         return;
       }
 
-      // Shuffle and pick 5 questions
-      gameCurrentQuestions = [...CT_QUESTIONS_BANK].sort(() => 0.5 - Math.random()).slice(0, 5);
-      gameCurrentIndex = 0;
-      gameScore = 0;
-      gameCorrectCount = 0;
-      gameTotalTimeSpent = 0;
+      filtered.forEach((m, idx) => {
+        const mainProj = CONFIG.PROJECTS.find(p => p.id === m.mainProject);
+        let subName = '-';
+        if (mainProj) {
+          const subObj = mainProj.subs.find(s => s.id === m.subProject);
+          if (subObj) subName = subObj.name;
+        }
 
-      document.getElementById('gameStartScreen').classList.add('hidden');
-      document.getElementById('gameResultScreen').classList.add('hidden');
-      document.getElementById('gamePlayScreen').classList.remove('hidden');
-
-      loadQuestion(gameCurrentIndex);
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-700/30 transition">
+            <td class="py-2.5 px-4 text-xs text-slate-400">${idx + 1}</td>
+            <td class="py-2.5 px-4 font-semibold text-white">${m.name}</td>
+            <td class="py-2.5 px-4 text-xs text-slate-300">${m.kelas}</td>
+            <td class="py-2.5 px-4 text-xs text-indigo-300">${mainProj ? mainProj.name : '-'}</td>
+            <td class="py-2.5 px-4 text-xs text-slate-400">${subName}</td>
+            <td class="py-2.5 px-4 text-center no-print">
+              <button onclick="deleteMember('${m.id}')" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 transition">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
     }
 
-    function loadQuestion(index) {
-      clearInterval(gameTimerInterval);
-      const q = gameCurrentQuestions[index];
+    function populateFilterProject() {
+      const filter = document.getElementById('filter-project');
+      filter.innerHTML = '<option value="">Semua Proyek Utama</option>';
+      CONFIG.PROJECTS.forEach(p => {
+        filter.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+      });
+    }
 
-      document.getElementById('questionNumBadge').textContent = `Soal ${index + 1} / ${gameCurrentQuestions.length}`;
-      document.getElementById('categoryBadge').textContent = q.category;
-      document.getElementById('questionTitle').textContent = q.question;
-      document.getElementById('currentGameScore').textContent = gameScore;
+    // --- FORM ACTIONS ---
+    function handleRegistration(e) {
+      e.preventDefault();
+      const name = document.getElementById('student-name').value.trim();
+      const kelas = document.getElementById('student-class').value.trim();
+      const mainProject = document.getElementById('main-project-select').value;
+      const subProject = document.getElementById('sub-project-select').value;
 
-      const codeBlock = document.getElementById('questionCodeBlock');
-      if (q.code) {
-        codeBlock.textContent = q.code;
-        codeBlock.classList.remove('hidden');
-      } else {
-        codeBlock.classList.add('hidden');
+      if (!name || !kelas || !mainProject || !subProject) return;
+
+      if (members.length >= CONFIG.TOTAL_SYSTEM_QUOTA) {
+        alert('Maaf, kuota total ekskul (70 anggota) telah penuh!');
+        return;
       }
 
-      // Render Options
-      const container = document.getElementById('optionsContainer');
-      container.innerHTML = '';
+      const newMember = {
+        id: 'm_' + Date.now(),
+        name,
+        kelas,
+        mainProject,
+        subProject
+      };
 
-      q.options.forEach((optText, optIdx) => {
-        const btn = document.createElement('button');
-        btn.className = "w-full text-left p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-800 text-xs text-white font-medium transition duration-150 flex items-center justify-between group";
-        btn.onclick = () => selectAnswer(optIdx);
-        btn.innerHTML = `
-          <span>${optText}</span>
-          <i class="fa-regular fa-circle text-slate-600 group-hover:text-amber-400"></i>
+      members.push(newMember);
+      renderApp();
+      populateMainProjectSelect();
+      document.getElementById('project-form').reset();
+      document.getElementById('sub-project-select').innerHTML = '<option value="">-- Pilih Proyek Utama Terlebih Dahulu --</option>';
+
+      alert('Pendaftaran berhasil disimpan!');
+    }
+
+    function deleteMember(id) {
+      if (!confirm('Apakah Anda yakin ingin menghapus anggota ini? Data skor di leaderboard juga akan otomatis disinkronkan.')) return;
+      
+      const memberToDelete = members.find(m => m.id === id);
+      members = members.filter(m => m.id !== id);
+      
+      // Jika anggota yang dihapus ada di leaderboard Firebase, hapus juga skornya
+      if (memberToDelete && window.firebaseDb) {
+        const scoreRef = window.firebaseRef(window.firebaseDb, 'leaderboard/' + memberToDelete.id);
+        window.firebaseRemove(scoreRef);
+      }
+
+      renderApp();
+      populateMainProjectSelect();
+    }
+
+    // --- GAME LOGIC ---
+    function populateGamePlayerSelect() {
+      const select = document.getElementById('game-player-select');
+      select.innerHTML = '<option value="">-- Pilih Nama Anda --</option>';
+      members.forEach(m => {
+        select.innerHTML += `<option value="${m.id}">${m.name} (${m.kelas})</option>`;
+      });
+    }
+
+    function startGame() {
+      const playerId = document.getElementById('game-player-select').value;
+      if (!playerId) {
+        alert('Silakan pilih nama Anda terlebih dahulu!');
+        return;
+      }
+
+      const playerObj = members.find(m => m.id === playerId);
+      if (!playerObj) return;
+
+      currentGame.playerId = playerObj.id;
+      currentGame.playerName = playerObj.name;
+      currentGame.playerClass = playerObj.kelas;
+      currentGame.questions = [...QUESTION_BANK].sort(() => 0.5 - Math.random());
+      currentGame.currentIndex = 0;
+      currentGame.score = 0;
+
+      document.getElementById('game-screen-start').classList.add('hidden');
+      document.getElementById('game-screen-quiz').classList.remove('hidden');
+      document.getElementById('game-screen-result').classList.add('hidden');
+
+      renderQuizQuestion();
+    }
+
+    function renderQuizQuestion() {
+      const q = currentGame.questions[currentGame.currentIndex];
+      document.getElementById('quiz-question-num').innerText = currentGame.currentIndex + 1;
+      document.getElementById('quiz-topic-badge').innerText = q.topic;
+      document.getElementById('quiz-score').innerText = currentGame.score;
+      document.getElementById('quiz-question-text').innerText = q.question;
+
+      document.getElementById('quiz-explanation-box').classList.add('hidden');
+      document.getElementById('quiz-next-btn').classList.add('hidden');
+
+      const optionsContainer = document.getElementById('quiz-options-container');
+      optionsContainer.innerHTML = '';
+
+      q.options.forEach((opt, idx) => {
+        optionsContainer.innerHTML += `
+          <button onclick="checkAnswer(${idx})" class="quiz-opt-btn w-full text-left p-3 rounded-lg bg-slate-900 border border-slate-700 hover:border-indigo-500 text-xs text-slate-200 font-medium transition flex items-center justify-between">
+            <span>${opt}</span>
+            <i class="fa-regular fa-circle text-slate-500"></i>
+          </button>
         `;
-        container.appendChild(btn);
       });
 
-      // Hide Feedback Box & Reset Next Button
-      const fbBox = document.getElementById('feedbackBox');
-      fbBox.className = "hidden p-4 rounded-xl border text-xs space-y-1 transition";
-      fbBox.innerHTML = '';
+      startQuizTimer();
+    }
 
-      const nextBtn = document.getElementById('nextQuestionBtn');
-      nextBtn.disabled = true;
-      nextBtn.className = "px-5 py-2.5 bg-slate-800 text-slate-500 cursor-not-allowed font-bold text-xs rounded-xl transition flex items-center space-x-2";
+    function startQuizTimer() {
+      clearInterval(currentGame.timer);
+      currentGame.timeLeft = 20;
+      document.getElementById('quiz-timer').innerText = currentGame.timeLeft;
 
-      // Timer
-      gameTimeLeft = 20;
-      document.getElementById('gameTimer').textContent = `${gameTimeLeft}s`;
-      
-      gameTimerInterval = setInterval(() => {
-        gameTimeLeft--;
-        gameTotalTimeSpent++;
-        document.getElementById('gameTimer').textContent = `${gameTimeLeft}s`;
-
-        if (gameTimeLeft <= 0) {
-          clearInterval(gameTimerInterval);
-          selectAnswer(-1); // Time out
+      currentGame.timer = setInterval(() => {
+        currentGame.timeLeft--;
+        document.getElementById('quiz-timer').innerText = currentGame.timeLeft;
+        if (currentGame.timeLeft <= 0) {
+          clearInterval(currentGame.timer);
+          checkAnswer(-1); // Timeout
         }
       }, 1000);
     }
 
-    function selectAnswer(selectedIndex) {
-      clearInterval(gameTimerInterval);
-      const q = gameCurrentQuestions[gameCurrentIndex];
-      const buttons = document.getElementById('optionsContainer').children;
-      const fbBox = document.getElementById('feedbackBox');
+    function checkAnswer(selectedIdx) {
+      clearInterval(currentGame.timer);
+      const q = currentGame.questions[currentGame.currentIndex];
+      const buttons = document.querySelectorAll('.quiz-opt-btn');
 
-      // Disable all option buttons
-      for (let i = 0; i < buttons.length; i++) {
-        buttons[i].disabled = true;
-        buttons[i].classList.add('cursor-default');
-      }
-
-      const isCorrect = selectedIndex === q.answerIndex;
-
-      if (isCorrect) {
-        const timeBonus = gameTimeLeft * 5;
-        const earned = 100 + timeBonus;
-        gameScore += earned;
-        gameCorrectCount++;
-
-        buttons[selectedIndex].className = "w-full text-left p-3.5 rounded-xl border border-emerald-500/50 bg-emerald-500/10 text-xs text-emerald-300 font-bold transition flex items-center justify-between";
-        buttons[selectedIndex].innerHTML += `<i class="fa-solid fa-circle-check text-emerald-400"></i>`;
-
-        fbBox.className = "p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/40 text-emerald-200 text-xs space-y-1";
-        fbBox.innerHTML = `<p class="font-bold"><i class="fa-solid fa-check mr-1"></i> Benar! (+${earned} PTS termasuk bonus kecepatan)</p><p class="text-[11px] opacity-80">${q.explanation}</p>`;
-      } else {
-        if (selectedIndex >= 0) {
-          buttons[selectedIndex].className = "w-full text-left p-3.5 rounded-xl border border-rose-500/50 bg-rose-500/10 text-xs text-rose-300 font-bold transition flex items-center justify-between";
-          buttons[selectedIndex].innerHTML += `<i class="fa-solid fa-circle-xmark text-rose-400"></i>`;
+      buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === q.answer) {
+          btn.classList.add('border-emerald-500', 'bg-emerald-500/10', 'text-emerald-300');
+        } else if (idx === selectedIdx) {
+          btn.classList.add('border-rose-500', 'bg-rose-500/10', 'text-rose-300');
         }
+      });
 
-        // Highlight correct option
-        buttons[q.answerIndex].className = "w-full text-left p-3.5 rounded-xl border border-emerald-500/50 bg-emerald-500/10 text-xs text-emerald-300 font-bold transition flex items-center justify-between";
-
-        fbBox.className = "p-4 rounded-xl border border-rose-500/30 bg-rose-950/40 text-rose-200 text-xs space-y-1";
-        fbBox.innerHTML = `<p class="font-bold"><i class="fa-solid fa-xmark mr-1"></i> ${selectedIndex === -1 ? 'Waktu Habis!' : 'Kurang Tepat!'}</p><p class="text-[11px] opacity-80">${q.explanation}</p>`;
+      if (selectedIdx === q.answer) {
+        const bonus = currentGame.timeLeft * 2;
+        currentGame.score += (20 + bonus);
+        document.getElementById('quiz-score').innerText = currentGame.score;
       }
 
-      fbBox.classList.remove('hidden');
-      document.getElementById('currentGameScore').textContent = gameScore;
-
-      // Enable Next Button
-      const nextBtn = document.getElementById('nextQuestionBtn');
-      nextBtn.disabled = false;
-      nextBtn.className = "px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center space-x-2";
+      document.getElementById('quiz-explain-text').innerText = q.explain;
+      document.getElementById('quiz-explanation-box').classList.remove('hidden');
+      document.getElementById('quiz-next-btn').classList.remove('hidden');
     }
 
     function nextQuestion() {
-      gameCurrentIndex++;
-      if (gameCurrentIndex < gameCurrentQuestions.length) {
-        loadQuestion(gameCurrentIndex);
+      currentGame.currentIndex++;
+      if (currentGame.currentIndex < currentGame.questions.length) {
+        renderQuizQuestion();
       } else {
-        finishCTGame();
+        finishGame();
       }
     }
 
-    function finishCTGame() {
-      document.getElementById('gamePlayScreen').classList.add('hidden');
-      document.getElementById('gameResultScreen').classList.remove('hidden');
+    function finishGame() {
+      document.getElementById('game-screen-quiz').classList.add('hidden');
+      document.getElementById('game-screen-result').classList.remove('hidden');
 
-      document.getElementById('resultPlayerName').textContent = `${gameSelectedPlayer.name} (${gameSelectedPlayer.class})`;
-      document.getElementById('resultTotalScore').textContent = `${gameScore} PTS`;
-      document.getElementById('resultCorrectCount').textContent = `${gameCorrectCount} / 5`;
-      
-      const avgTime = (gameTotalTimeSpent / 5).toFixed(1);
-      document.getElementById('resultAvgTime').textContent = `${avgTime}s`;
+      document.getElementById('res-total-score').innerText = currentGame.score;
+      const accuracy = Math.round((currentGame.score / (5 * 60)) * 100);
+      document.getElementById('res-accuracy').innerText = accuracy + '%';
 
-      // Save score to leaderboard
-      const newEntry = {
-        id: "LDB_" + Date.now(),
-        name: gameSelectedPlayer.name,
-        class: gameSelectedPlayer.class,
-        score: gameScore,
-        accuracy: Math.round((gameCorrectCount / 5) * 100),
-        date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
-      };
+      // Save to Firebase Realtime Database
+      saveScoreToFirebase(currentGame.playerId, currentGame.playerName, currentGame.playerClass, currentGame.score, accuracy);
+    }
 
-      // Check if player already exists in leaderboard, update if score is higher
-      const existingIdx = leaderboard.findIndex(l => l.name.toLowerCase() === gameSelectedPlayer.name.toLowerCase());
-      if (existingIdx !== -1) {
-        if (gameScore > leaderboard[existingIdx].score) {
-          leaderboard[existingIdx] = newEntry;
-        }
-      } else {
-        leaderboard.push(newEntry);
-      }
+    function saveScoreToFirebase(id, name, kelas, score, accuracy) {
+      if (!window.firebaseDb) return;
 
-      // Sort leaderboard descending by score
-      leaderboard.sort((a, b) => b.score - a.score);
+      const userScoreRef = window.firebaseRef(window.firebaseDb, 'leaderboard/' + id);
+      window.firebaseSet(userScoreRef, {
+        id: id,
+        name: name,
+        kelas: kelas,
+        score: score,
+        accuracy: accuracy,
+        updatedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+      });
+    }
 
-      saveLeaderboardToStorage();
-      renderLeaderboardTable();
-      populateGamePlayerDropdown();
+    function deleteLeaderboardEntry(id) {
+      if (!confirm('Hapus skor anggota ini dari papan peringkat Firebase?')) return;
+      if (!window.firebaseDb) return;
+
+      const scoreRef = window.firebaseRef(window.firebaseDb, 'leaderboard/' + id);
+      window.firebaseRemove(scoreRef);
     }
 
     function resetGameScreen() {
-      document.getElementById('gameResultScreen').classList.add('hidden');
-      document.getElementById('gamePlayScreen').classList.add('hidden');
-      document.getElementById('gameStartScreen').classList.remove('hidden');
+      document.getElementById('game-screen-result').classList.add('hidden');
+      document.getElementById('game-screen-start').classList.remove('hidden');
     }
 
-    function renderLeaderboardTable() {
-      const tbody = document.getElementById('leaderboardTableBody');
-      const emptyState = document.getElementById('emptyLeaderboard');
-      const podiumContainer = document.getElementById('topPodiumContainer');
-
-      tbody.innerHTML = '';
+    // --- LEADERBOARD RENDER ---
+    function renderLeaderboardUI() {
+      // Podium
+      const podiumContainer = document.getElementById('podium-container');
       podiumContainer.innerHTML = '';
 
-      if (leaderboard.length === 0) {
-        emptyState.classList.remove('hidden');
-        return;
-      } else {
-        emptyState.classList.add('hidden');
-      }
+      const top1 = leaderboardData[0];
+      const top2 = leaderboardData[1];
+      const top3 = leaderboardData[2];
 
-      // Render Top 3 Podium
-      const top3 = leaderboard.slice(0, 3);
-      const podiumColors = [
-        { border: "border-yellow-500/50", bg: "bg-yellow-500/10", badge: "bg-yellow-500 text-slate-950", icon: "🥇", label: "Juara 1" },
-        { border: "border-slate-400/50", bg: "bg-slate-400/10", badge: "bg-slate-300 text-slate-950", icon: "🥈", label: "Juara 2" },
-        { border: "border-amber-700/50", bg: "bg-amber-700/10", badge: "bg-amber-600 text-white", icon: "🥉", label: "Juara 3" }
-      ];
-
-      top3.forEach((item, idx) => {
-        const style = podiumColors[idx] || podiumColors[2];
-        const card = document.createElement('div');
-        card.className = `bg-slate-950 border ${style.border} ${style.bg} rounded-2xl p-4 text-center space-y-2 relative overflow-hidden`;
-        card.innerHTML = `
-          <div class="text-3xl">${style.icon}</div>
-          <div>
-            <span class="${style.badge} text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">${style.label}</span>
-            <h3 class="text-sm font-bold text-white mt-1 leading-tight">${escapeHTML(item.name)}</h3>
-            <p class="text-[11px] text-slate-400">${escapeHTML(item.class)}</p>
+      podiumContainer.innerHTML = `
+        <!-- Juara 2 -->
+        <div class="text-center">
+          <div class="text-xl">🥈</div>
+          <div class="bg-slate-800 border border-slate-700 rounded-t-lg p-2 h-24 flex flex-col justify-end">
+            <p class="font-bold text-xs text-white truncate">${top2 ? top2.name : '-'}</p>
+            <p class="text-[10px] text-amber-400 font-bold">${top2 ? top2.score + ' Pts' : '-'}</p>
           </div>
-          <p class="text-lg font-black text-amber-400 font-mono">${item.score} PTS</p>
-        `;
-        podiumContainer.appendChild(card);
-      });
-
-      // Render Table Rows
-      leaderboard.forEach((item, idx) => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-800/40 transition duration-150";
-
-        let rankBadge = `<span class="font-mono text-xs font-bold text-slate-400">${idx + 1}</span>`;
-        if (idx === 0) rankBadge = `<span class="bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 px-2 py-0.5 rounded font-bold text-xs">🥇 #1</span>`;
-        if (idx === 1) rankBadge = `<span class="bg-slate-400/20 text-slate-300 border border-slate-400/30 px-2 py-0.5 rounded font-bold text-xs">🥈 #2</span>`;
-        if (idx === 2) rankBadge = `<span class="bg-amber-600/20 text-amber-400 border border-amber-600/30 px-2 py-0.5 rounded font-bold text-xs">🥉 #3</span>`;
-
-        tr.innerHTML = `
-          <td class="py-3 px-4 text-center">${rankBadge}</td>
-          <td class="py-3 px-4 font-semibold text-white">${escapeHTML(item.name)}</td>
-          <td class="py-3 px-4 text-xs text-slate-300">
-            <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-[11px]">${escapeHTML(item.class)}</span>
-          </td>
-          <td class="py-3 px-4 text-center font-mono font-bold text-amber-400">${item.score} PTS</td>
-          <td class="py-3 px-4 text-center font-mono text-xs text-emerald-400">${item.accuracy}%</td>
-          <td class="py-3 px-4 text-right text-xs text-slate-500 font-mono">${item.date}</td>
-          <td class="py-3 px-4 text-center">
-            <button onclick="promptDeleteLeaderboardEntry('${item.id}', '${escapeHTML(item.name)}')" class="text-slate-500 hover:text-rose-400 p-1 transition" title="Hapus Skor">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      if (leaderboard.length > 0) {
-        document.getElementById('topLeaderBadge').textContent = `Top 1: ${leaderboard[0].score} pts`;
-      } else {
-        document.getElementById('topLeaderBadge').textContent = `Top 1: 0 pts`;
-      }
-    }
-
-    // Updated Export JSON to include leaderboard
-    function exportJSON() {
-      if (members.length === 0 && leaderboard.length === 0) {
-        showToast("Belum ada data untuk diexport.", "info");
-        return;
-      }
-
-      const fullData = {
-        members: members,
-        leaderboard: leaderboard,
-        exportedAt: new Date().toISOString()
-      };
-
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullData, null, 2));
-      const downloadAnchor = document.createElement('a');
-      const dateStr = new Date().toISOString().slice(0,10);
-      
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `ekskul_komputer_full_data_${dateStr}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-
-      showToast("File JSON data anggota & leaderboard berhasil diunduh!", "success");
-    }
-
-    function importJSON(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const importedData = JSON.parse(e.target.result);
-          if (Array.isArray(importedData)) {
-            // Legacy format (array of members)
-            members = importedData;
-          } else if (importedData.members) {
-            // New format object
-            members = importedData.members || [];
-            leaderboard = importedData.leaderboard || [];
-          }
-
-          saveMembersToStorage();
-          saveLeaderboardToStorage();
-          renderQuotaCards();
-          renderMembersTable();
-          updateStatsBar();
-          populateGamePlayerDropdown();
-          renderLeaderboardTable();
-          showToast(`Berhasil mengimpor data dari file JSON!`, 'success');
-        } catch (err) {
-          showToast("Gagal membaca file JSON. Pastikan format file benar.", "error");
-        }
-      };
-      reader.readAsText(file);
-      event.target.value = '';
-    }
-
-    // Helper: Toast Notifications
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      
-      const colors = {
-        success: 'bg-emerald-950 border-emerald-500 text-emerald-200',
-        error: 'bg-rose-950 border-rose-500 text-rose-200',
-        info: 'bg-cyan-950 border-cyan-500 text-cyan-200'
-      };
-
-      const icons = {
-        success: 'fa-circle-check text-emerald-400',
-        error: 'fa-circle-xmark text-rose-400',
-        info: 'fa-circle-info text-cyan-400'
-      };
-
-      toast.className = `pointer-events-auto flex items-center space-x-3 border px-4 py-3 rounded-xl shadow-2xl text-xs font-medium backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0 ${colors[type] || colors.info}`;
-      toast.innerHTML = `
-        <i class="fa-solid ${icons[type]} text-base"></i>
-        <span>${message}</span>
+        </div>
+        <!-- Juara 1 -->
+        <div class="text-center">
+          <div class="text-2xl">🥇</div>
+          <div class="bg-indigo-900/60 border border-indigo-500/50 rounded-t-lg p-2 h-32 flex flex-col justify-end shadow-lg shadow-indigo-500/10">
+            <p class="font-bold text-xs text-white truncate">${top1 ? top1.name : '-'}</p>
+            <p class="text-xs text-amber-400 font-extrabold">${top1 ? top1.score + ' Pts' : '-'}</p>
+          </div>
+        </div>
+        <!-- Juara 3 -->
+        <div class="text-center">
+          <div class="text-xl">🥉</div>
+          <div class="bg-slate-800 border border-slate-700 rounded-t-lg p-2 h-20 flex flex-col justify-end">
+            <p class="font-bold text-xs text-white truncate">${top3 ? top3.name : '-'}</p>
+            <p class="text-[10px] text-amber-400 font-bold">${top3 ? top3.score + ' Pts' : '-'}</p>
+          </div>
+        </div>
       `;
 
-      container.appendChild(toast);
-
-      setTimeout(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-      }, 10);
-
-      setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => toast.remove(), 300);
-      }, 3500);
-    }
-
-    // Populate Select Options
-    function populateMainProjectSelects() {
-      const select = document.getElementById('mainProjectSelect');
-      const filterSelect = document.getElementById('projectFilter');
-
-      // Clear existing options (except first default)
-      select.innerHTML = '<option value="" disabled selected>-- Pilih Proyek Utama --</option>';
-      filterSelect.innerHTML = '<option value="ALL">Semua Proyek Utama</option>';
-
-      PROJECTS_CONFIG.forEach(p => {
-        const option = document.createElement('option');
-        option.value = p.id;
-        option.textContent = `${p.title} (Max: ${p.maxQuota})`;
-        select.appendChild(option);
-
-        const filterOpt = document.createElement('option');
-        filterOpt.value = p.id;
-        filterOpt.textContent = p.title;
-        filterSelect.appendChild(filterOpt);
-      });
-    }
-
-    // Handle Main Project Select Change -> Cascade to Sub Projects
-    function onMainProjectChange() {
-      const mainId = document.getElementById('mainProjectSelect').value;
-      const subSelect = document.getElementById('subProjectSelect');
-      const hint = document.getElementById('subQuotaHint');
-
-      subSelect.innerHTML = '<option value="" disabled selected>-- Pilih Sub-Proyek / Peran --</option>';
-      subSelect.disabled = false;
-
-      const mainProj = PROJECTS_CONFIG.find(p => p.id === mainId);
-      if (!mainProj) return;
-
-      mainProj.subProjects.forEach(sub => {
-        const count = getSubProjectMemberCount(mainId, sub.id);
-        const remaining = sub.maxQuota - count;
-        const isFull = remaining <= 0;
-
-        const option = document.createElement('option');
-        option.value = sub.id;
-        option.disabled = isFull;
-        option.textContent = `${sub.title} - [${isFull ? 'PENUH' : `Sisa ${remaining}`}]`;
-        subSelect.appendChild(option);
-      });
-
-      hint.textContent = `Pilih salah satu dari ${mainProj.subProjects.length} opsi sub-proyek yang tersedia.`;
-    }
-
-    // Calculation Helpers
-    function getMainProjectMemberCount(mainProjectId) {
-      return members.filter(m => m.mainProjectId === mainProjectId).length;
-    }
-
-    function getSubProjectMemberCount(mainProjectId, subProjectId) {
-      return members.filter(m => m.mainProjectId === mainProjectId && m.subProjectId === subProjectId).length;
-    }
-
-    // Register New Member
-    function handleRegister(event) {
-      event.preventDefault();
-
-      if (members.length >= TOTAL_MAX_CAPACITY) {
-        showToast(`Kuota total ekskul (${TOTAL_MAX_CAPACITY} anggota) telah terpenuhi!`, 'error');
-        return;
-      }
-
-      const nameInput = document.getElementById('memberName');
-      const classInput = document.getElementById('memberClass');
-      const mainId = document.getElementById('mainProjectSelect').value;
-      const subId = document.getElementById('subProjectSelect').value;
-
-      const name = nameInput.value.trim();
-      const className = classInput.value.trim();
-
-      // Duplicate Check
-      const existing = members.find(m => m.name.toLowerCase() === name.toLowerCase());
-      if (existing) {
-        showToast(`Siswa dengan nama "${name}" sudah terdaftar di proyek lain!`, 'error');
-        return;
-      }
-
-      // Quota check
-      const mainProj = PROJECTS_CONFIG.find(p => p.id === mainId);
-      const subProj = mainProj?.subProjects.find(s => s.id === subId);
-
-      if (!mainProj || !subProj) {
-        showToast("Pilihan proyek tidak valid.", "error");
-        return;
-      }
-
-      const currentSubCount = getSubProjectMemberCount(mainId, subId);
-      if (currentSubCount >= subProj.maxQuota) {
-        showToast(`Maaf, kuota untuk "${subProj.title}" sudah penuh!`, 'error');
-        return;
-      }
-
-      // Add Member
-      const newMember = {
-        id: "MBR_" + Date.now(),
-        name: name,
-        class: className,
-        mainProjectId: mainId,
-        subProjectId: subId,
-        registeredAt: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
-      };
-
-      members.push(newMember);
-      saveMembersToStorage();
-
-      // UI Updates
-      showToast(`Berhasil mendaftarkan ${name} ke sub-proyek!`, 'success');
-      
-      // Reset form
-      document.getElementById('registrationForm').reset();
-      document.getElementById('subProjectSelect').disabled = true;
-      document.getElementById('subProjectSelect').innerHTML = '<option value="" disabled selected>-- Pilih Proyek Utama Dahulu --</option>';
-
-      renderQuotaCards();
-      renderMembersTable();
-      updateStatsBar();
-    }
-
-    // Render Quota Progress Cards
-    function renderQuotaCards() {
-      const container = document.getElementById('projectsQuotaContainer');
-      container.innerHTML = '';
-
-      PROJECTS_CONFIG.forEach(p => {
-        const currentMainCount = getMainProjectMemberCount(p.id);
-        const mainPercentage = Math.round((currentMainCount / p.maxQuota) * 100);
-        const isMainFull = currentMainCount >= p.maxQuota;
-
-        const card = document.createElement('div');
-        card.className = `bg-slate-950 border border-slate-800/80 rounded-xl p-4 space-y-3 transition hover:border-slate-700`;
-
-        let subListHTML = p.subProjects.map(sub => {
-          const subCount = getSubProjectMemberCount(p.id, sub.id);
-          const subPct = Math.round((subCount / sub.maxQuota) * 100);
-          const isSubFull = subCount >= sub.maxQuota;
-
-          return `
-            <div class="space-y-1">
-              <div class="flex justify-between text-[11px]">
-                <span class="text-slate-300 font-medium">${sub.title}</span>
-                <span class="${isSubFull ? 'text-rose-400 font-bold' : 'text-slate-400'}">${subCount}/${sub.maxQuota}</span>
-              </div>
-              <div class="w-full bg-slate-900 rounded-full h-1 overflow-hidden">
-                <div class="${isSubFull ? 'bg-rose-500' : 'bg-cyan-500'} h-1 rounded-full transition-all duration-300" style="width: ${subPct}%"></div>
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        card.innerHTML = `
-          <div class="flex items-center justify-between border-b border-slate-800/60 pb-2.5">
-            <div class="flex items-center space-x-2.5">
-              <div class="w-7 h-7 rounded-lg ${p.bg} ${p.border} border flex items-center justify-center ${p.color}">
-                <i class="fa-solid ${p.icon} text-xs"></i>
-              </div>
-              <div>
-                <h3 class="text-xs font-bold text-white">${p.title}</h3>
-                <span class="text-[10px] text-slate-400">Terisi ${currentMainCount} / ${p.maxQuota} Anggota</span>
-              </div>
-            </div>
-            <div>
-              <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${isMainFull ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}">
-                ${isMainFull ? 'PENUH' : `Sisa ${p.maxQuota - currentMainCount}`}
-              </span>
-            </div>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-            ${subListHTML}
-          </div>
-        `;
-
-        container.appendChild(card);
-      });
-    }
-
-    // Render Members Table
-    function renderMembersTable() {
-      const tbody = document.getElementById('membersTableBody');
-      const emptyState = document.getElementById('emptyState');
-      const searchValue = document.getElementById('searchInput').value.toLowerCase();
-      const filterValue = document.getElementById('projectFilter').value;
-
+      // Table
+      const tbody = document.getElementById('leaderboard-table-body');
       tbody.innerHTML = '';
 
-      let filtered = members.filter(m => {
-        const matchesSearch = m.name.toLowerCase().includes(searchValue) || m.class.toLowerCase().includes(searchValue);
-        const matchesFilter = filterValue === 'ALL' || m.mainProjectId === filterValue;
-        return matchesSearch && matchesFilter;
-      });
-
-      document.getElementById('printTotalCount').textContent = filtered.length;
-
-      if (filtered.length === 0) {
-        emptyState.classList.remove('hidden');
+      if (leaderboardData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500 text-xs">Belum ada skor tercatat. Mainkan Tes Logika sekarang!</td></tr>`;
         return;
-      } else {
-        emptyState.classList.add('hidden');
       }
 
-      filtered.forEach((m, index) => {
-        const mainProj = PROJECTS_CONFIG.find(p => p.id === m.mainProjectId);
-        const subProj = mainProj?.subProjects.find(s => s.id === m.subProjectId);
+      leaderboardData.forEach((item, idx) => {
+        let rankBadge = `<span class="text-slate-400 font-bold">${idx + 1}</span>`;
+        if (idx === 0) rankBadge = '🥇';
+        if (idx === 1) rankBadge = '🥈';
+        if (idx === 2) rankBadge = '🥉';
 
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-800/40 transition duration-150';
-        tr.innerHTML = `
-          <td class="py-3 px-4 text-center text-xs font-mono text-slate-500">${index + 1}</td>
-          <td class="py-3 px-4 font-semibold text-white">${escapeHTML(m.name)}</td>
-          <td class="py-3 px-4 text-xs text-slate-300">
-            <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-[11px]">${escapeHTML(m.class)}</span>
-          </td>
-          <td class="py-3 px-4 text-xs font-medium ${mainProj ? mainProj.color : 'text-slate-300'}">
-            <i class="fa-solid ${mainProj ? mainProj.icon : 'fa-folder'} mr-1.5 opacity-80"></i>
-            ${mainProj ? mainProj.title : 'N/A'}
-          </td>
-          <td class="py-3 px-4 text-xs text-slate-300">
-            <span class="bg-slate-950 border border-slate-800 px-2 py-1 rounded-md inline-block text-[11px]">
-              ${subProj ? subProj.title : 'N/A'}
-            </span>
-          </td>
-          <td class="py-3 px-4 text-[11px] text-slate-500 font-mono">${m.registeredAt || '-'}</td>
-          <td class="py-3 px-4 text-center no-print">
-            <button onclick="promptDeleteMember('${m.id}', '${escapeHTML(m.name)}')" class="text-slate-500 hover:text-rose-400 p-1 transition" title="Hapus Anggota">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </td>
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-700/30 transition">
+            <td class="py-2.5 px-4 text-center">${rankBadge}</td>
+            <td class="py-2.5 px-4 font-semibold text-white">${item.name}</td>
+            <td class="py-2.5 px-4 text-xs text-slate-300">${item.kelas}</td>
+            <td class="py-2.5 px-4 text-xs font-bold text-amber-400">${item.score} Pts</td>
+            <td class="py-2.5 px-4 text-xs text-emerald-400">${item.accuracy}%</td>
+            <td class="py-2.5 px-4 text-xs text-slate-400">${item.updatedAt || '-'}</td>
+            <td class="py-2.5 px-4 text-center">
+              <button onclick="deleteLeaderboardEntry('${item.id}')" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 transition">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+          </tr>
         `;
-        tbody.appendChild(tr);
       });
     }
 
-    // Update Top Summary Stats Bar
-    function updateStatsBar() {
-      const total = members.length;
-      const remaining = TOTAL_MAX_CAPACITY - total;
-      
-      let fullProjects = 0;
-      PROJECTS_CONFIG.forEach(p => {
-        if (getMainProjectMemberCount(p.id) >= p.maxQuota) {
-          fullProjects++;
-        }
-      });
-
-      const statTotalEl = document.getElementById('statTotal');
-      if (statTotalEl) statTotalEl.textContent = total;
-
-      const regBadge = document.getElementById('registeredCountBadge');
-      if (regBadge) regBadge.textContent = total;
-
-      const statRemEl = document.getElementById('statRemaining');
-      if (statRemEl) statRemEl.textContent = remaining;
-
-      const statFullEl = document.getElementById('statFullProjects');
-      if (statFullEl) statFullEl.textContent = fullProjects;
-
-      const progressEl = document.getElementById('progressTotal');
-      if (progressEl) {
-        const pct = Math.round((total / TOTAL_MAX_CAPACITY) * 100);
-        progressEl.style.width = `${pct}%`;
-      }
-    }
-
-    // Helper: HTML Escape
-    function escapeHTML(str) {
-      return str.replace(/[&<>'"]/g, 
-        tag => ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          "'": '&#39;',
-          '"': '&quot;'
-        }[tag] || tag)
-      );
-    }
-
-    // Delete Member Modal
-    function promptDeleteMember(id, name) {
-      openModal(
-        "Hapus Anggota",
-        `Apakah Anda yakin ingin menghapus "${name}" dari kelompok? Skor di leaderboard juga akan dibersihkan.`,
-        () => {
-          members = members.filter(m => m.id !== id);
-          leaderboard = leaderboard.filter(l => l.name.toLowerCase() !== name.toLowerCase());
-          saveMembersToStorage();
-          saveLeaderboardToStorage();
-          renderQuotaCards();
-          renderMembersTable();
-          renderLeaderboardTable();
-          populateGamePlayerDropdown();
-          updateStatsBar();
-          showToast(`Data anggota & skor "${name}" berhasil dihapus.`, 'info');
-          closeModal();
-        }
-      );
-    }
-
-    // Delete Leaderboard Entry Modal
-    function promptDeleteLeaderboardEntry(id, name) {
-      openModal(
-        "Hapus Skor Leaderboard",
-        `Apakah Anda yakin ingin menghapus skor leaderboard untuk "${name}"?`,
-        () => {
-          leaderboard = leaderboard.filter(l => l.id !== id);
-          saveLeaderboardToStorage();
-          renderLeaderboardTable();
-          populateGamePlayerDropdown();
-          showToast(`Skor leaderboard "${name}" berhasil dihapus.`, 'info');
-          closeModal();
-        }
-      );
-    }
-
-    // Reset Data Modal
-    function promptResetData() {
-      if (members.length === 0 && leaderboard.length === 0) {
-        showToast("Tidak ada data anggota atau leaderboard untuk direset.", "info");
-        return;
-      }
-
-      openModal(
-        "Reset Semua Data",
-        "PERINGATAN: Semua rekap data anggota dan papan peringkat (leaderboard) akan dihapus secara permanen!",
-        () => {
-          members = [];
-          leaderboard = [];
-          saveMembersToStorage();
-          saveLeaderboardToStorage();
-          renderQuotaCards();
-          renderMembersTable();
-          renderLeaderboardTable();
-          populateGamePlayerDropdown();
-          updateStatsBar();
-          showToast("Seluruh data anggota & leaderboard berhasil dibersihkan.", "info");
-          closeModal();
-        }
-      );
-    }
-
-    // Reset Data Modal
-    function promptResetData() {
-      if (members.length === 0) {
-        showToast("Tidak ada data anggota untuk direset.", "info");
-        return;
-      }
-
-      openModal(
-        "Reset Semua Data",
-        "PERINGATAN: Semua rekap data anggota dan pilihan proyek akan dihapus secara permanen!",
-        () => {
-          members = [];
-          saveMembersToStorage();
-          renderQuotaCards();
-          renderMembersTable();
-          updateStatsBar();
-          showToast("Seluruh data anggota berhasil dibersihkan.", "info");
-          closeModal();
-        }
-      );
-    }
-
-    // Export JSON File
+    // --- JSON EXPORT & IMPORT ---
     function exportJSON() {
-      if (members.length === 0) {
-        showToast("Belum ada data anggota untuk diexport.", "info");
-        return;
-      }
-
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(members, null, 2));
+      const dataToExport = {
+        members: members,
+        leaderboard: leaderboardData
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport, null, 2));
       const downloadAnchor = document.createElement('a');
-      const dateStr = new Date().toISOString().slice(0,10);
-      
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `ekskul_komputer_kelompok_${dateStr}.json`);
+      downloadAnchor.setAttribute("download", `ekskul_komputer_backup_${new Date().toISOString().slice(0,10)}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-
-      showToast("File JSON rekap kelompok berhasil diunduh!", "success");
-    }
-
-    // Import JSON File
-    function triggerImportJSON() {
-      document.getElementById('jsonFileInput').click();
     }
 
     function importJSON(event) {
@@ -1578,46 +978,17 @@
       reader.onload = function(e) {
         try {
           const importedData = JSON.parse(e.target.result);
-          if (Array.isArray(importedData)) {
-            members = importedData;
-            saveMembersToStorage();
-            renderQuotaCards();
-            renderMembersTable();
-            updateStatsBar();
-            showToast(`Berhasil mengimpor ${members.length} data anggota dari file JSON!`, 'success');
-          } else {
-            showToast("Format JSON tidak valid. Harus berupa array data.", "error");
+          if (importedData.members && Array.isArray(importedData.members)) {
+            members = importedData.members;
+            renderApp();
+            populateMainProjectSelect();
+            alert('Data anggota berhasil diimpor!');
           }
         } catch (err) {
-          showToast("Gagal membaca file JSON. Pastikan format file benar.", "error");
+          alert('Format file JSON tidak valid.');
         }
       };
       reader.readAsText(file);
-      event.target.value = ''; // Reset file input
-    }
-
-    // Generic Modal Control
-    let modalCallback = null;
-
-    function openModal(title, message, onConfirm) {
-      document.getElementById('modalTitle').textContent = title;
-      document.getElementById('modalMessage').textContent = message;
-      modalCallback = onConfirm;
-
-      const modal = document.getElementById('confirmModal');
-      modal.classList.remove('hidden');
-      setTimeout(() => modal.classList.remove('opacity-0'), 10);
-
-      document.getElementById('modalConfirmBtn').onclick = () => {
-        if (modalCallback) modalCallback();
-      };
-    }
-
-    function closeModal() {
-      const modal = document.getElementById('confirmModal');
-      modal.classList.add('opacity-0');
-      setTimeout(() => modal.classList.add('hidden'), 200);
-      modalCallback = null;
     }
   </script>
 </body>
