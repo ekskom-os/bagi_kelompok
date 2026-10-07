@@ -15,11 +15,8 @@ function togglePinInput() {
   const roleSelect = document.getElementById('role-select');
   const pinContainer = document.getElementById('pin-container');
   if (roleSelect && pinContainer) {
-    if (roleSelect.value === 'admin') {
-      pinContainer.classList.remove('hidden');
-    } else {
-      pinContainer.classList.add('hidden');
-    }
+    if (roleSelect.value === 'admin') pinContainer.classList.remove('hidden');
+    else pinContainer.classList.add('hidden');
   }
 }
 
@@ -54,23 +51,23 @@ function updateRoleUI() {
   if (badge) {
     if (currentRole === 'admin') {
       badge.innerText = 'Role: Admin';
-      badge.className = 'px-2.5 py-1 rounded-md text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30';
+      badge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30';
     } else if (currentRole === 'member') {
       badge.innerText = 'Role: Member';
-      badge.className = 'px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
+      badge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
     } else {
       badge.innerText = 'Role: Guest';
-      badge.className = 'px-2.5 py-1 rounded-md text-xs font-bold bg-slate-700 text-slate-300';
+      badge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-700 text-slate-300';
     }
   }
 
   if (banner) {
     if (currentRole === 'admin') {
-      banner.innerHTML = '<i class="fa-solid fa-user-shield text-rose-400 mr-2"></i> <b>Akses Admin Aktif:</b> Anda memiliki kontrol penuh atas data.';
+      banner.innerHTML = '<i class="fa-solid fa-user-shield text-rose-400 mr-2"></i> <b>Akses Admin Aktif:</b> Kontrol penuh atas data dan sistem.';
     } else if (currentRole === 'member') {
-      banner.innerHTML = '<i class="fa-solid fa-user text-indigo-400 mr-2"></i> <b>Akses Member:</b> Anda dapat mendaftar proyek dan mengikuti tes logika CT.';
+      banner.innerHTML = '<i class="fa-solid fa-user text-indigo-400 mr-2"></i> <b>Akses Member:</b> Anda dapat mendaftar proyek dan mengikuti tes logika.';
     } else {
-      banner.innerHTML = '<i class="fa-solid fa-eye text-slate-400 mr-2"></i> <b>Akses Guest (Tamu):</b> Anda hanya dapat melihat rekap proyek dan peringkat.';
+      banner.innerHTML = '<i class="fa-solid fa-eye text-slate-400 mr-2"></i> <b>Akses Guest:</b> Hanya dapat melihat status kuota dan peringkat.';
     }
   }
 
@@ -84,9 +81,7 @@ function updateRoleUI() {
     }
   }
 
-  if (typeof renderMembersTable === 'function') {
-    renderMembersTable();
-  }
+  if (typeof renderMembersTable === 'function') renderMembersTable();
 }
 
 function logoutAdmin() {
@@ -95,7 +90,7 @@ function logoutAdmin() {
   updateRoleUI();
 }
 
-// Hubungkan fungsi ke objek window agar bisa dipanggil oleh onclick di HTML
+// Global Exports
 window.openAuthModal = openAuthModal;
 window.closeAuthModal = closeAuthModal;
 window.togglePinInput = togglePinInput;
