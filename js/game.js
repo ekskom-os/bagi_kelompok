@@ -3,7 +3,6 @@ function generate200Questions() {
   const list = [];
   const ops = ['+', '-', '×', '÷'];
   
-  // 1. Generator 160 Soal Matematika
   for (let i = 0; i < 160; i++) {
     const op = ops[i % 4];
     let a, b, answer, questionStr;
@@ -23,14 +22,13 @@ function generate200Questions() {
       b = Math.floor(Math.random() * 15) + 2;
       answer = a * b;
       questionStr = `Berapakah hasil dari ${a} × ${b}?`;
-    } else { // '÷'
+    } else {
       b = Math.floor(Math.random() * 12) + 2;
       answer = Math.floor(Math.random() * 12) + 2;
       a = b * answer;
       questionStr = `Berapakah hasil dari ${a} ÷ ${b}?`;
     }
 
-    // Opsi Jawaban Acak
     const optionsSet = new Set([answer]);
     while (optionsSet.size < 4) {
       let delta = (Math.floor(Math.random() * 10) + 1) * (Math.random() < 0.5 ? 1 : -1);
@@ -47,7 +45,6 @@ function generate200Questions() {
     });
   }
 
-  // 2. Generator 40 Soal Logika CT
   const ctBank = [
     { q: "Urutan langkah logis untuk menyelesaikan masalah disebut?", options: ["Algoritma", "Variabel", "Looping", "Bug"], ans: 0 },
     { q: "Proses memecah masalah besar menjadi bagian-bagian kecil dinamakan?", options: ["Abstraksi", "Dekomposisi", "Pola", "Pengurutan"], ans: 1 },
@@ -85,7 +82,6 @@ function startGame() {
     return; 
   }
   
-  // Acak 200 soal dan ambil 15 soal untuk sesi ini
   activeSessionQuestions = [...masterQuestionsPool].sort(() => Math.random() - 0.5).slice(0, 15);
   currentQIndex = 0; 
   gameScore = 0;
@@ -128,7 +124,6 @@ function handleAnswer(selectedIdx, buttonEl) {
   const currentQ = activeSessionQuestions[currentQIndex];
   const allButtons = document.querySelectorAll('#options-container button');
   
-  // Disable semua tombol agar tidak di-klik ganda
   allButtons.forEach(btn => btn.disabled = true);
 
   if (selectedIdx === currentQ.ans) {
@@ -169,20 +164,28 @@ function resetTimer() {
 function finishGame() {
   clearInterval(timerInterval);
   const nameInput = document.getElementById('player-name');
-  const name = nameInput ? nameInput.value.trim() : 'Siswa';
+  const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'Siswa';
   
-  if (window.firebaseRef && window.firebaseDb && window.firebaseSet) {
+  // 1. Tambahkan ke Leaderboard Lokal Instan
+  if (typeof window.addLeaderboardEntry === 'function') {
+    window.addLeaderboardEntry(name, gameScore);
+  }
+
+  // 2. Beri Notifikasi Selamat & Skor
+  alert(`🎉 SELAMAT ${name.toUpperCase()}!\n\nTes Logika & MTK telah selesai.\nTotal Skor Anda: ${gameScore} Point`);
+
+  // 3. Reset Tampilan Game & Otomatis Pindah ke Tab Leaderboard
+  resetQuizUI();
+  if (typeof window.switchTab === 'function') {
+    window.switchTab('leaderboard');
+  }
+
+  // 4. Kirim Data ke Firebase di Background
+  if (window.firebaseDb && window.firebaseRef && window.firebaseSet) {
     const leaderRef = window.firebaseRef(window.firebaseDb, 'leaderboard/' + Date.now());
-    window.firebaseSet(leaderRef, { name: name, score: gameScore }).then(() => {
-      alert(`Selamat ${name}! Tes Selesai.\nSkor Akhir Anda: ${gameScore}`);
-      resetQuizUI();
-    }).catch(() => {
-      alert(`Tes Selesai! Skor Akhir Anda: ${gameScore}`);
-      resetQuizUI();
+    window.firebaseSet(leaderRef, { name: name, score: gameScore }).catch(err => {
+      console.warn('Gagal sinkron leaderboard ke Firebase:', err);
     });
-  } else {
-    alert(`Tes Selesai! Skor Akhir Anda: ${gameScore}`);
-    resetQuizUI();
   }
 }
 
