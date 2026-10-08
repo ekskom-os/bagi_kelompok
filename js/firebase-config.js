@@ -4,7 +4,7 @@ import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/
 const firebaseConfig = {
   apiKey: "AIzaSyBdei2SbuMUaQ-womyAs00pCvCexmS4wQY",
   authDomain: "ekskom-os.firebaseapp.com",
-  databaseURL: "https://ekskom-os-default-rtdb.firebaseio.com",
+  databaseURL: "https://ekskom-os-default-rtdb.asia-southeast1.firebasedatabase.app/",
   projectId: "ekskom-os",
   storageBucket: "ekskom-os.firebasestorage.app",
   messagingSenderId: "247935939839",
