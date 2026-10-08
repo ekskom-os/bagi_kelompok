@@ -2,23 +2,28 @@ let membersData = [];
 const projectsList = ["Web Development", "Game Dev", "UI/UX Design", "Cyber Security"];
 const MAX_QUOTA = 5;
 
-// Fungsi inisialisasi Firebase
+// Inisialisasi Firebase dengan pengecekan ulang otomatis (Retry Loop)
 function initProjectsFirebase() {
   if (window.firebaseDb && window.firebaseRef && window.firebaseOnValue) {
     const dbRef = window.firebaseRef(window.firebaseDb, 'members');
     window.firebaseOnValue(dbRef, (snapshot) => {
       const data = snapshot.val();
-      membersData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+      if (data) {
+        membersData = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+      }
       renderProjectsGrid();
       renderMembersTable();
     });
+  } else {
+    setTimeout(initProjectsFirebase, 300);
   }
 }
 
-// Dengarkan event firebase-ready atau jalankan langsung jika Firebase sudah siap
 window.addEventListener('firebase-ready', initProjectsFirebase);
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(initProjectsFirebase, 500);
+  renderProjectsGrid();
+  renderMembersTable();
+  initProjectsFirebase();
 });
 
 function renderProjectsGrid() {
@@ -75,10 +80,7 @@ function handleRegister(e) {
   const nameInput = document.getElementById('member-name');
   const projectSelect = document.getElementById('project-select');
   
-  if (!nameInput || !projectSelect) {
-    alert('Elemen form tidak ditemukan!');
-    return;
-  }
+  if (!nameInput || !projectSelect) return;
   
   const name = nameInput.value.trim();
   const project = projectSelect.value;
@@ -90,46 +92,54 @@ function handleRegister(e) {
 
   const currentCount = membersData.filter(m => m.project === project).length;
   if (currentCount >= MAX_QUOTA) {
-    alert(`Kuota untuk proyek "${project}" sudah penuh! (Maksimal ${MAX_QUOTA} anggota)`);
+    alert(`Kuota untuk proyek "${project}" sudah penuh!`);
     return;
   }
 
-  // Cek koneksi Firebase
-  if (!window.firebaseDb || !window.firebaseRef || !window.firebaseSet) {
-    alert('Koneksi database sedang disiapkan, silakan coba 2 detik lagi.');
-    initProjectsFirebase();
-    return;
-  }
-
-  const newRef = window.firebaseRef(window.firebaseDb, 'members/' + Date.now());
-  window.firebaseSet(newRef, {
+  const memberId = 'mem_' + Date.now();
+  const newMember = {
+    id: memberId,
     name: name,
     project: project,
     date: new Date().toLocaleDateString('id-ID')
-  }).then(() => {
-    alert(`Berhasil mendaftarkan ${name} ke proyek ${project}!`);
-    const form = document.getElementById('project-form');
-    if (form) form.reset();
-  }).catch((err) => {
-    alert('Gagal menyimpan data ke database: ' + err.message);
-  });
+  };
+
+  // 1. Langsung tambahkan ke memori lokal & perbarui tabel instan
+  membersData.push(newMember);
+  renderProjectsGrid();
+  renderMembersTable();
+
+  // Reset Input Form
+  const form = document.getElementById('project-form');
+  if (form) form.reset();
+
+  // 2. Kirim ke Firebase secara terpisah (Background Sync)
+  if (window.firebaseDb && window.firebaseRef && window.firebaseSet) {
+    const newRef = window.firebaseRef(window.firebaseDb, 'members/' + memberId);
+    window.firebaseSet(newRef, {
+      name: newMember.name,
+      project: newMember.project,
+      date: newMember.date
+    }).catch(err => {
+      console.warn('Gagal sinkron ke cloud Firebase:', err);
+    });
+  }
 }
 
 function deleteMember(id) {
   if (!confirm('Hapus anggota ini?')) return;
   
-  if (!window.firebaseDb || !window.firebaseRef || !window.firebaseRemove) {
-    alert('Koneksi database belum siap.');
-    return;
-  }
+  membersData = membersData.filter(m => m.id !== id);
+  renderProjectsGrid();
+  renderMembersTable();
 
-  const itemRef = window.firebaseRef(window.firebaseDb, 'members/' + id);
-  window.firebaseRemove(itemRef).catch((err) => {
-    alert('Gagal menghapus: ' + err.message);
-  });
+  if (window.firebaseDb && window.firebaseRef && window.firebaseRemove) {
+    const itemRef = window.firebaseRef(window.firebaseDb, 'members/' + id);
+    window.firebaseRemove(itemRef).catch(err => console.warn('Gagal hapus Firebase:', err));
+  }
 }
 
-// Bind Fungsi ke Window secara Ekstisif
+// Bind Fungsi ke Window Scope
 window.handleRegister = handleRegister;
 window.deleteMember = deleteMember;
 window.renderMembersTable = renderMembersTable;
