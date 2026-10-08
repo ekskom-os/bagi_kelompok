@@ -1,25 +1,40 @@
-window.addEventListener('firebase-ready', () => {
-  if (!window.firebaseDb || !window.firebaseRef) return;
-  const dbRef = window.firebaseRef(window.firebaseDb, 'leaderboard');
-  window.firebaseOnValue(dbRef, (snapshot) => {
-    const data = snapshot.val();
-    const list = data ? Object.keys(data).map(key => data[key]) : [];
-    list.sort((a, b) => b.score - a.score);
-    renderLeaderboard(list);
-  });
+let leaderboardData = [];
+
+function initLeaderboardFirebase() {
+  if (window.firebaseDb && window.firebaseRef && window.firebaseOnValue) {
+    const dbRef = window.firebaseRef(window.firebaseDb, 'leaderboard');
+    window.firebaseOnValue(dbRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        leaderboardData = Object.keys(data).map(key => data[key]);
+      }
+      renderLeaderboard();
+    });
+  } else {
+    setTimeout(initLeaderboardFirebase, 300);
+  }
+}
+
+window.addEventListener('firebase-ready', initLeaderboardFirebase);
+document.addEventListener('DOMContentLoaded', () => {
+  renderLeaderboard();
+  initLeaderboardFirebase();
 });
 
-function renderLeaderboard(data) {
+function renderLeaderboard() {
   const tbody = document.getElementById('leaderboard-table-body');
   if (!tbody) return;
   tbody.innerHTML = '';
 
-  if (data.length === 0) {
+  if (leaderboardData.length === 0) {
     tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-slate-500 text-xs">Belum ada skor tercatat.</td></tr>`;
     return;
   }
 
-  data.forEach((item, idx) => {
+  // Urutkan skor tertinggi ke terendah
+  leaderboardData.sort((a, b) => b.score - a.score);
+
+  leaderboardData.forEach((item, idx) => {
     let rankBadge = `#${idx + 1}`;
     if (idx === 0) rankBadge = '🥇 #1';
     else if (idx === 1) rankBadge = '🥈 #2';
@@ -34,3 +49,12 @@ function renderLeaderboard(data) {
     `;
   });
 }
+
+function addLeaderboardEntry(name, score) {
+  leaderboardData.push({ name: name, score: score });
+  renderLeaderboard();
+}
+
+// Global Exports
+window.addLeaderboardEntry = addLeaderboardEntry;
+window.renderLeaderboard = renderLeaderboard;
