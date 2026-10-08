@@ -1,4 +1,10 @@
-let leaderboardData = [];
+// Membaca data awal dari localStorage (agar tidak hilang saat refresh)
+let leaderboardData = JSON.parse(localStorage.getItem('leaderboardData')) || [];
+
+// Fungsi simpan ke localStorage
+function saveLeaderboardToLocal() {
+  localStorage.setItem('leaderboardData', JSON.stringify(leaderboardData));
+}
 
 function initLeaderboardFirebase() {
   if (window.firebaseDb && window.firebaseRef && window.firebaseOnValue) {
@@ -7,6 +13,7 @@ function initLeaderboardFirebase() {
       const data = snapshot.val();
       if (data) {
         leaderboardData = Object.keys(data).map(key => data[key]);
+        saveLeaderboardToLocal(); // Update penyimpanan lokal saat Firebase diperbarui
       }
       renderLeaderboard();
     });
@@ -16,7 +23,9 @@ function initLeaderboardFirebase() {
 }
 
 window.addEventListener('firebase-ready', initLeaderboardFirebase);
+
 document.addEventListener('DOMContentLoaded', () => {
+  // Render instan dari localStorage saat halaman dimuat
   renderLeaderboard();
   initLeaderboardFirebase();
 });
@@ -31,7 +40,7 @@ function renderLeaderboard() {
     return;
   }
 
-  // Urutkan skor tertinggi ke terendah
+  // Urutkan skor dari tertinggi ke terendah
   leaderboardData.sort((a, b) => b.score - a.score);
 
   leaderboardData.forEach((item, idx) => {
@@ -52,6 +61,7 @@ function renderLeaderboard() {
 
 function addLeaderboardEntry(name, score) {
   leaderboardData.push({ name: name, score: score });
+  saveLeaderboardToLocal();
   renderLeaderboard();
 }
 
