@@ -166,27 +166,26 @@ function finishGame() {
   const nameInput = document.getElementById('player-name');
   const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'Siswa';
   
-  // 1. Tambahkan ke Leaderboard Lokal Instan
-  if (typeof window.addLeaderboardEntry === 'function') {
-    window.addLeaderboardEntry(name, gameScore);
+  if (!window.firebaseDb || !window.firebaseRef || !window.firebaseSet) {
+    alert(`🎉 SELAMAT ${name.toUpperCase()}!\n\nTotal Skor Anda: ${gameScore} Point.\n(Catatan: Server database belum terhubung)`);
+    resetQuizUI();
+    return;
   }
 
-  // 2. Beri Notifikasi Selamat & Skor
-  alert(`🎉 SELAMAT ${name.toUpperCase()}!\n\nTes Logika & MTK telah selesai.\nTotal Skor Anda: ${gameScore} Point`);
-
-  // 3. Reset Tampilan Game & Otomatis Pindah ke Tab Leaderboard
-  resetQuizUI();
-  if (typeof window.switchTab === 'function') {
-    window.switchTab('leaderboard');
-  }
-
-  // 4. Kirim Data ke Firebase di Background
-  if (window.firebaseDb && window.firebaseRef && window.firebaseSet) {
-    const leaderRef = window.firebaseRef(window.firebaseDb, 'leaderboard/' + Date.now());
-    window.firebaseSet(leaderRef, { name: name, score: gameScore }).catch(err => {
-      console.warn('Gagal sinkron leaderboard ke Firebase:', err);
+  // Kirim data langsung ke Server Cloud Firebase
+  const leaderRef = window.firebaseRef(window.firebaseDb, 'leaderboard/' + Date.now());
+  window.firebaseSet(leaderRef, { name: name, score: gameScore })
+    .then(() => {
+      alert(`🎉 SELAMAT ${name.toUpperCase()}!\n\nTes Logika & MTK telah selesai.\nTotal Skor Anda: ${gameScore} Point`);
+      resetQuizUI();
+      if (typeof window.switchTab === 'function') {
+        window.switchTab('leaderboard');
+      }
+    })
+    .catch(err => {
+      alert(`Skor Anda: ${gameScore}\n\nTerjadi kesalahan koneksi server: ${err.message}`);
+      resetQuizUI();
     });
-  }
 }
 
 function resetQuizUI() {
