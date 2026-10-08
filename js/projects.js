@@ -1,8 +1,14 @@
-let membersData = [];
+// Membaca data awal dari localStorage (agar tidak hilang saat refresh)
+let membersData = JSON.parse(localStorage.getItem('membersData')) || [];
 const projectsList = ["Web Development", "Game Dev", "UI/UX Design", "Cyber Security"];
 const MAX_QUOTA = 5;
 
-// Inisialisasi Firebase dengan pengecekan ulang otomatis (Retry Loop)
+// Fungsi simpan ke localStorage
+function saveMembersToLocal() {
+  localStorage.setItem('membersData', JSON.stringify(membersData));
+}
+
+// Inisialisasi Firebase dengan Sinkronisasi Dua Arah
 function initProjectsFirebase() {
   if (window.firebaseDb && window.firebaseRef && window.firebaseOnValue) {
     const dbRef = window.firebaseRef(window.firebaseDb, 'members');
@@ -10,6 +16,7 @@ function initProjectsFirebase() {
       const data = snapshot.val();
       if (data) {
         membersData = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        saveMembersToLocal(); // Update penyimpanan lokal saat Firebase diperbarui
       }
       renderProjectsGrid();
       renderMembersTable();
@@ -20,7 +27,9 @@ function initProjectsFirebase() {
 }
 
 window.addEventListener('firebase-ready', initProjectsFirebase);
+
 document.addEventListener('DOMContentLoaded', () => {
+  // Render instan dari localStorage saat pertama kali dimuat
   renderProjectsGrid();
   renderMembersTable();
   initProjectsFirebase();
@@ -104,25 +113,25 @@ function handleRegister(e) {
     date: new Date().toLocaleDateString('id-ID')
   };
 
-  // 1. Langsung tambahkan ke memori lokal & perbarui tabel instan
+  // 1. Simpan ke lokal memori & localStorage instan
   membersData.push(newMember);
+  saveMembersToLocal();
+  
   renderProjectsGrid();
   renderMembersTable();
 
-  // Reset Input Form
+  // Reset Form
   const form = document.getElementById('project-form');
   if (form) form.reset();
 
-  // 2. Kirim ke Firebase secara terpisah (Background Sync)
+  // 2. Kirim ke Firebase di Background
   if (window.firebaseDb && window.firebaseRef && window.firebaseSet) {
     const newRef = window.firebaseRef(window.firebaseDb, 'members/' + memberId);
     window.firebaseSet(newRef, {
       name: newMember.name,
       project: newMember.project,
       date: newMember.date
-    }).catch(err => {
-      console.warn('Gagal sinkron ke cloud Firebase:', err);
-    });
+    }).catch(err => console.warn('Gagal sinkron Firebase:', err));
   }
 }
 
@@ -130,6 +139,8 @@ function deleteMember(id) {
   if (!confirm('Hapus anggota ini?')) return;
   
   membersData = membersData.filter(m => m.id !== id);
+  saveMembersToLocal();
+  
   renderProjectsGrid();
   renderMembersTable();
 
@@ -139,7 +150,7 @@ function deleteMember(id) {
   }
 }
 
-// Bind Fungsi ke Window Scope
+// Global Exports
 window.handleRegister = handleRegister;
 window.deleteMember = deleteMember;
 window.renderMembersTable = renderMembersTable;
