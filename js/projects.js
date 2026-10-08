@@ -1,25 +1,24 @@
-// Membaca data awal dari localStorage (agar tidak hilang saat refresh)
-let membersData = JSON.parse(localStorage.getItem('membersData')) || [];
+let membersData = [];
 const projectsList = ["Web Development", "Game Dev", "UI/UX Design", "Cyber Security"];
 const MAX_QUOTA = 5;
 
-// Fungsi simpan ke localStorage
-function saveMembersToLocal() {
-  localStorage.setItem('membersData', JSON.stringify(membersData));
-}
-
-// Inisialisasi Firebase dengan Sinkronisasi Dua Arah
+// Inisialisasi Listener Real-time ke Server Cloud Firebase
 function initProjectsFirebase() {
   if (window.firebaseDb && window.firebaseRef && window.firebaseOnValue) {
     const dbRef = window.firebaseRef(window.firebaseDb, 'members');
+    
+    // Mendengarkan perubahan data langsung dari server cloud secara real-time
     window.firebaseOnValue(dbRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         membersData = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-        saveMembersToLocal(); // Update penyimpanan lokal saat Firebase diperbarui
+      } else {
+        membersData = [];
       }
       renderProjectsGrid();
       renderMembersTable();
+    }, (error) => {
+      console.error("Gagal terhubung ke server Firebase:", error);
     });
   } else {
     setTimeout(initProjectsFirebase, 300);
@@ -29,7 +28,6 @@ function initProjectsFirebase() {
 window.addEventListener('firebase-ready', initProjectsFirebase);
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Render instan dari localStorage saat pertama kali dimuat
   renderProjectsGrid();
   renderMembersTable();
   initProjectsFirebase();
@@ -64,7 +62,7 @@ function renderMembersTable() {
   tbody.innerHTML = '';
 
   if (membersData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-4 text-center text-slate-500 text-xs">Belum ada anggota terdaftar.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-4 text-center text-slate-500 text-xs">Belum ada anggota terdaftar di server database.</td></tr>`;
     return;
   }
 
@@ -105,48 +103,36 @@ function handleRegister(e) {
     return;
   }
 
+  if (!window.firebaseDb || !window.firebaseRef || !window.firebaseSet) {
+    alert('Koneksi ke server database belum siap. Silakan coba beberapa detik lagi!');
+    return;
+  }
+
   const memberId = 'mem_' + Date.now();
   const newMember = {
-    id: memberId,
     name: name,
     project: project,
     date: new Date().toLocaleDateString('id-ID')
   };
 
-  // 1. Simpan ke lokal memori & localStorage instan
-  membersData.push(newMember);
-  saveMembersToLocal();
-  
-  renderProjectsGrid();
-  renderMembersTable();
-
-  // Reset Form
-  const form = document.getElementById('project-form');
-  if (form) form.reset();
-
-  // 2. Kirim ke Firebase di Background
-  if (window.firebaseDb && window.firebaseRef && window.firebaseSet) {
-    const newRef = window.firebaseRef(window.firebaseDb, 'members/' + memberId);
-    window.firebaseSet(newRef, {
-      name: newMember.name,
-      project: newMember.project,
-      date: newMember.date
-    }).catch(err => console.warn('Gagal sinkron Firebase:', err));
-  }
+  // Simpan data murni ke Server Cloud Firebase
+  const newRef = window.firebaseRef(window.firebaseDb, 'members/' + memberId);
+  window.firebaseSet(newRef, newMember)
+    .then(() => {
+      const form = document.getElementById('project-form');
+      if (form) form.reset();
+    })
+    .catch(err => {
+      alert('Gagal menyimpan ke server: ' + err.message);
+    });
 }
 
 function deleteMember(id) {
-  if (!confirm('Hapus anggota ini?')) return;
-  
-  membersData = membersData.filter(m => m.id !== id);
-  saveMembersToLocal();
-  
-  renderProjectsGrid();
-  renderMembersTable();
+  if (!confirm('Hapus anggota ini dari server?')) return;
 
   if (window.firebaseDb && window.firebaseRef && window.firebaseRemove) {
     const itemRef = window.firebaseRef(window.firebaseDb, 'members/' + id);
-    window.firebaseRemove(itemRef).catch(err => console.warn('Gagal hapus Firebase:', err));
+    window.firebaseRemove(itemRef).catch(err => alert('Gagal hapus dari server: ' + err.message));
   }
 }
 
