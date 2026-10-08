@@ -1,13 +1,18 @@
 let membersData = [];
-const projectsList = ["Web Development", "Game Dev", "UI/UX Design", "Cyber Security"];
-const MAX_QUOTA = 5;
+
+// Pengaturan Kuota 4 Proyek (Total: 18 + 18 + 17 + 17 = 70 Anggota)
+const projectQuotas = {
+  "Web Development": 18,
+  "Game Dev": 18,
+  "UI/UX Design": 17,
+  "Cyber Security": 17
+};
 
 // Inisialisasi Listener Real-time ke Server Cloud Firebase
 function initProjectsFirebase() {
   if (window.firebaseDb && window.firebaseRef && window.firebaseOnValue) {
     const dbRef = window.firebaseRef(window.firebaseDb, 'members');
     
-    // Mendengarkan perubahan data langsung dari server cloud secara real-time
     window.firebaseOnValue(dbRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -38,18 +43,21 @@ function renderProjectsGrid() {
   if (!container) return;
   container.innerHTML = '';
 
-  projectsList.forEach(proj => {
+  Object.keys(projectQuotas).forEach(proj => {
+    const maxQuota = projectQuotas[proj];
     const count = membersData.filter(m => m.project === proj).length;
-    const remaining = MAX_QUOTA - count;
+    const remaining = maxQuota - count;
+    const percentage = Math.min((count / maxQuota) * 100, 100);
+
     container.innerHTML += `
       <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-2xl space-y-2.5 shadow-lg">
         <h4 class="font-bold text-slate-200 text-sm">${proj}</h4>
         <div class="flex justify-between text-xs text-slate-400">
-          <span>Terisi: ${count}/${MAX_QUOTA}</span>
+          <span>Terisi: ${count}/${maxQuota}</span>
           <span class="${remaining > 0 ? 'text-emerald-400 font-semibold' : 'text-rose-400 font-semibold'}">${remaining > 0 ? 'Sisa ' + remaining : 'Penuh'}</span>
         </div>
         <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-700/50">
-          <div class="bg-indigo-500 h-2 rounded-full transition-all duration-300" style="width: ${(count/MAX_QUOTA)*100}%"></div>
+          <div class="bg-indigo-500 h-2 rounded-full transition-all duration-300" style="width: ${percentage}%"></div>
         </div>
       </div>
     `;
@@ -97,9 +105,11 @@ function handleRegister(e) {
     return;
   }
 
+  const maxQuota = projectQuotas[project] || 18;
   const currentCount = membersData.filter(m => m.project === project).length;
-  if (currentCount >= MAX_QUOTA) {
-    alert(`Kuota untuk proyek "${project}" sudah penuh!`);
+  
+  if (currentCount >= maxQuota) {
+    alert(`Kuota untuk proyek "${project}" sudah penuh! (Maksimal ${maxQuota} anggota)`);
     return;
   }
 
@@ -115,7 +125,6 @@ function handleRegister(e) {
     date: new Date().toLocaleDateString('id-ID')
   };
 
-  // Simpan data murni ke Server Cloud Firebase
   const newRef = window.firebaseRef(window.firebaseDb, 'members/' + memberId);
   window.firebaseSet(newRef, newMember)
     .then(() => {
