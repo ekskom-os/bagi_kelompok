@@ -1,21 +1,20 @@
-// Membaca data awal dari localStorage (agar tidak hilang saat refresh)
-let leaderboardData = JSON.parse(localStorage.getItem('leaderboardData')) || [];
-
-// Fungsi simpan ke localStorage
-function saveLeaderboardToLocal() {
-  localStorage.setItem('leaderboardData', JSON.stringify(leaderboardData));
-}
+let leaderboardData = [];
 
 function initLeaderboardFirebase() {
   if (window.firebaseDb && window.firebaseRef && window.firebaseOnValue) {
     const dbRef = window.firebaseRef(window.firebaseDb, 'leaderboard');
+    
+    // Mendengarkan skor leaderboard langsung dari server cloud secara real-time
     window.firebaseOnValue(dbRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        leaderboardData = Object.keys(data).map(key => data[key]);
-        saveLeaderboardToLocal(); // Update penyimpanan lokal saat Firebase diperbarui
+        leaderboardData = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+      } else {
+        leaderboardData = [];
       }
       renderLeaderboard();
+    }, (error) => {
+      console.error("Gagal terhubung ke leaderboard Firebase:", error);
     });
   } else {
     setTimeout(initLeaderboardFirebase, 300);
@@ -25,7 +24,6 @@ function initLeaderboardFirebase() {
 window.addEventListener('firebase-ready', initLeaderboardFirebase);
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Render instan dari localStorage saat halaman dimuat
   renderLeaderboard();
   initLeaderboardFirebase();
 });
@@ -36,11 +34,11 @@ function renderLeaderboard() {
   tbody.innerHTML = '';
 
   if (leaderboardData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-slate-500 text-xs">Belum ada skor tercatat.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-slate-500 text-xs">Belum ada skor tercatat di server database.</td></tr>`;
     return;
   }
 
-  // Urutkan skor dari tertinggi ke terendah
+  // Urutkan skor tertinggi ke terendah
   leaderboardData.sort((a, b) => b.score - a.score);
 
   leaderboardData.forEach((item, idx) => {
@@ -59,12 +57,5 @@ function renderLeaderboard() {
   });
 }
 
-function addLeaderboardEntry(name, score) {
-  leaderboardData.push({ name: name, score: score });
-  saveLeaderboardToLocal();
-  renderLeaderboard();
-}
-
 // Global Exports
-window.addLeaderboardEntry = addLeaderboardEntry;
 window.renderLeaderboard = renderLeaderboard;
