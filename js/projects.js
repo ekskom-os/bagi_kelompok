@@ -4,7 +4,7 @@ let membersData = [];
 const projectQuotas = {
   "Web Dev & Game Dev": 23,
   "UI/UX Design": 23,
-  "Arduiuno": 24,
+  "Arduino": 24,
 };
 
 // Inisialisasi Listener Real-time ke Server Cloud Firebase
