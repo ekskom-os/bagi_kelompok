@@ -2,7 +2,7 @@ let membersData = [];
 
 // Pengaturan Kuota 4 Proyek (Total: 18 + 18 + 17 + 17 = 70 Anggota)
 const projectQuotas = {
-  "Web Deve & Game Dev": 23,
+  "Web Dev & Game Dev": 23,
   "UI/UX Design": 23,
   "Arduiuno": 24,
 };
