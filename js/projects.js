@@ -2,10 +2,9 @@ let membersData = [];
 
 // Pengaturan Kuota 4 Proyek (Total: 18 + 18 + 17 + 17 = 70 Anggota)
 const projectQuotas = {
-  "Web Development": 18,
-  "Game Dev": 18,
-  "UI/UX Design": 17,
-  "Cyber Security": 17
+  "Web Deve & Game Dev": 23,
+  "UI/UX Design": 23,
+  "Arduiuno": 24,
 };
 
 // Inisialisasi Listener Real-time ke Server Cloud Firebase
